@@ -54,7 +54,7 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
         mLoadingDialog = new LoadingDialog(this);
         mLoadingDialog.setCancelable(false);
         mLoadingDialog.setCanceledOnTouchOutside(false);
-        mLoadingDialog.show();
+        mLoadingDialog.showDialog();
         mBiqugeUtil = new BiqugeUtil(mUrl);
         mBiqugeUtil.getHttp(new callback() {
             @Override
@@ -159,7 +159,8 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
         if (mTotal <= mIndex) {
             mIndex--;
             //Toast.makeText(this, "已经是最后一页!!", Toast.LENGTH_SHORT).show();
-            mLoadingDialog.show();
+            mImageView.setImageBitmap(null);
+            mLoadingDialog.showDialog();
             mBiqugeUtil.nextpage(new callback() {
                 @Override
                 public void loadsuccess() {
@@ -194,7 +195,8 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
         if (mIndex < 0) {
             mIndex++;
             //Toast.makeText(this, "已经是第一页!!", Toast.LENGTH_SHORT).show();
-            mLoadingDialog.show();
+            mImageView.setImageBitmap(null);
+            mLoadingDialog.showDialog();
             mBiqugeUtil.prevpage(new callback() {
                 @Override
                 public void loadsuccess() {
