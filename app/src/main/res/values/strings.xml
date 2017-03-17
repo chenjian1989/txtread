@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">txtread</string>
+    <string name="action_settings">Settings</string>
+    <string name="progress_button">查看loading 旋转效果</string>
+    <string name="progressbar_dialog_txt">正在处理，请稍后...</string>
 </resources>

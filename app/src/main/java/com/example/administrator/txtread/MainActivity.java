@@ -2,6 +2,7 @@ package com.example.administrator.txtread;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -18,9 +19,19 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     //定义手势检测器实例
     private GestureDetector detector;
 
+    private String mUrl = "http://www.biquge.tw/9_9080/5134179.html";
+
     private int mIndex = 0;
 
     private int mTotal = -1;
+
+    private boolean isLoading;
+
+    private BiqugeUtil mBiqugeUtil;
+
+    private LoadingDialog mLoadingDialog;
+
+    private Handler mHandler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,10 +44,36 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
         initDisplayMetrics();
         //创建手势检测器
         detector = new GestureDetector(this, this);
-        mTotal = TxtUtil.paging();
         mImageView = (ImageView) findViewById(R.id.img_txt);
         mTextView = (TextView) findViewById(R.id.txt_yema);
-        load();
+        String[] strs = App.getInstance().gettag();
+        if(strs != null && strs.length == 2){
+            mUrl = strs[0];
+            mIndex = Integer.parseInt(strs[1]);
+        }
+        mLoadingDialog = new LoadingDialog(this);
+        mLoadingDialog.setCancelable(false);
+        mLoadingDialog.setCanceledOnTouchOutside(false);
+        mLoadingDialog.show();
+        mBiqugeUtil = new BiqugeUtil(mUrl);
+        mBiqugeUtil.getHttp(new callback() {
+            @Override
+            public void loadsuccess() {
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mLoadingDialog.dismiss();
+                        load();
+                    }
+                });
+            }
+
+            @Override
+            public void loaderror() {
+                mLoadingDialog.dismiss();
+                Log.e("txtread", "getHttp()--loaderror");
+            }
+        });
     }
 
     private void initDisplayMetrics() {
@@ -51,6 +88,8 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     }
 
     private void load() {
+        isLoading = false;
+        mTotal = TxtUtil.paging();
         if (mIndex < mTotal && mIndex >= 0) {
             mImageView.setImageBitmap(TxtUtil.getBitMap(mIndex));
             int ind = mIndex + 1;
@@ -112,20 +151,71 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     }
 
     private void hfy(){
+        if(isLoading){
+            return;
+        }
+        isLoading = true;
         mIndex++;
         if (mTotal <= mIndex) {
             mIndex--;
-            Toast.makeText(this, "已经是最后一页!!", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "已经是最后一页!!", Toast.LENGTH_SHORT).show();
+            mLoadingDialog.show();
+            mBiqugeUtil.nextpage(new callback() {
+                @Override
+                public void loadsuccess() {
+                    mIndex = 0;
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mLoadingDialog.dismiss();
+                            load();
+                        }
+                    });
+                }
+
+                @Override
+                public void loaderror() {
+                    isLoading = false;
+                    mLoadingDialog.dismiss();
+                    Log.e("txtread", "nextpage()--loaderror");
+                }
+            });
         } else {
             load();
         }
     }
 
     private void qfy(){
+        if(isLoading){
+            return;
+        }
+        isLoading = true;
         mIndex--;
         if (mIndex < 0) {
             mIndex++;
-            Toast.makeText(this, "已经是第一页!!", Toast.LENGTH_SHORT).show();
+            //Toast.makeText(this, "已经是第一页!!", Toast.LENGTH_SHORT).show();
+            mLoadingDialog.show();
+            mBiqugeUtil.prevpage(new callback() {
+                @Override
+                public void loadsuccess() {
+                    mTotal = TxtUtil.paging();
+                    mIndex = mTotal - 1;
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            mLoadingDialog.dismiss();
+                            load();
+                        }
+                    });
+                }
+
+                @Override
+                public void loaderror() {
+                    isLoading = false;
+                    mLoadingDialog.dismiss();
+                    Log.e("txtread", "prevpage()--loaderror");
+                }
+            });
         } else {
             load();
         }
