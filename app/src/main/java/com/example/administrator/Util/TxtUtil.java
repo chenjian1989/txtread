@@ -1,5 +1,4 @@
-package com.example.administrator.txtread;
-
+package com.example.administrator.Util;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -7,7 +6,9 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PaintFlagsDrawFilter;
 import android.graphics.Typeface;
-import android.util.Log;
+import android.text.TextUtils;
+
+import com.example.administrator.txtread.App;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,22 +19,24 @@ public class TxtUtil {
 
     private static String mUrl = "";
 
+    private static String mHomeUrl = "";
+
     private static Paint mPaint;
 
     private static int mX = 5;
 
     private static int mFontHeight = -1;
 
-    private static int mY = 80;
-
     // 行距
     private static int mHangju = 0;
 
-    // 字体大小
-    private static int mTextSize = 50;
+    // 字体大小 （小米是 55）默认 30
+    private static int mTextSize = 55;
+
+    private static int mY = mTextSize + 30;
 
     // 字体颜色
-    private static int textColor = Color.RED;
+    private static int textColor = Color.BLACK;
 
     // 背景颜色
     private static int bColor = Color.WHITE;
@@ -49,9 +52,10 @@ public class TxtUtil {
         return mData;
     }
 
-    public static void setData(String str, String url) {
+    public static void setData(String str, String url, String homeurl) {
         mData = str;
         mUrl = url;
+        mHomeUrl = homeurl;
         // 章节数据发生变化,分页数据要刷新
         mLines.clear();
     }
@@ -199,7 +203,26 @@ public class TxtUtil {
         List<String> lines = parsingData();
         if (lines.size() > 0) {
             int ye = lines.size() / count;
-            if (lines.size() % count > 0) {
+            if (lines.size() % count == 1) {
+                String lastData = lines.get(lines.size() - 1);
+                lastData = lastData.replace("\r", "").replace(" ", "").replace("\t", "");
+                if (!TextUtils.isEmpty(lastData)) {
+                    ye++;
+                }
+            } else if (lines.size() % count == 2) {
+                String lastData1 = lines.get(lines.size() - 1).replace("\r", "").replace(" ", "").replace("\t", "");
+                String lastData2 = lines.get(lines.size() - 2).replace("\r", "").replace(" ", "").replace("\t", "");
+                if (!TextUtils.isEmpty(lastData1) && !TextUtils.isEmpty(lastData2)) {
+                    ye++;
+                }
+            } else if (lines.size() % count == 3) {
+                String lastData1 = lines.get(lines.size() - 1).replace("\r", "").replace(" ", "").replace("\t", "");
+                String lastData2 = lines.get(lines.size() - 2).replace("\r", "").replace(" ", "").replace("\t", "");
+                String lastData3 = lines.get(lines.size() - 3).replace("\r", "").replace(" ", "").replace("\t", "");
+                if (!TextUtils.isEmpty(lastData1) && !TextUtils.isEmpty(lastData2) && !TextUtils.isEmpty(lastData3)) {
+                    ye++;
+                }
+            } else if (lines.size() % count > 3) {
                 ye++;
             }
             return ye;
@@ -229,13 +252,13 @@ public class TxtUtil {
         canvas.drawColor(bColor);
         Paint paint = getTxtPaint();
         int FontHeight = getFontHeight();
-        //Log.e("txtread", "FontHeight: " + FontHeight);
+        //LogUtil.e("FontHeight: " + FontHeight);
         List<String> lines = parsingData();
-        //Log.e("txtread", "lines.size(): " + lines.size());
+        //LogUtil.e("lines.size(): " + lines.size());
         int x = mX;
         int y = mY;
         int count = getHang();
-        //Log.e("txtread", "count: " + count);
+        //LogUtil.e("count: " + count);
         int i = index * count;
         int end = count * (index + 1);
         for (; i < end; i++) {
@@ -246,9 +269,9 @@ public class TxtUtil {
                 break;
             }
         }
-        App.getInstance().savetag(mUrl, index);
+        App.getInstance().savetag(mHomeUrl, mUrl, index);
         long b = System.currentTimeMillis() - a;
-        Log.e("txtread", "getBitmap()耗时: " + b);
+        //LogUtil.e("getBitmap()耗时: " + b);
         return bitmap;
     }
 

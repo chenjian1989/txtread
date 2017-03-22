@@ -1,35 +1,36 @@
 package com.example.administrator.txtread;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.view.GestureDetector;
-import android.view.MotionEvent;
-import android.widget.ImageView;
+import android.text.TextUtils;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity implements GestureDetector.OnGestureListener {
+import com.example.administrator.Util.DownloadUtil;
+import com.example.administrator.Util.HttpCallback;
+import com.example.administrator.Util.HttpUtil;
+import com.example.administrator.Util.LocalCallBack;
+import com.example.administrator.Util.LogUtil;
+import com.example.administrator.adapter.TxtAdapter;
+import com.example.administrator.entity.HomeTxtEntity;
 
-    private ImageView mImageView;
-    private TextView mTextView;
+import java.util.ArrayList;
+import java.util.List;
 
-    //定义手势检测器实例
-    private GestureDetector detector;
+public class MainActivity extends Activity {
 
-    private String mUrl = "http://www.biquge.tw/9_9080/5134179.html";
+    private TxtAdapter mTxtAdapter;
 
-    private int mIndex = 0;
+    private ListView mList_txt;
 
-    private int mTotal = -1;
+    private DownloadUtil mDownloadUtil;
 
-    private boolean isLoading;
-
-    private BiqugeUtil mBiqugeUtil;
-
-    private LoadingDialog mLoadingDialog;
+    private List<HomeTxtEntity> mList_homes;
 
     private Handler mHandler = new Handler();
 
@@ -37,215 +38,131 @@ public class MainActivity extends Activity implements GestureDetector.OnGestureL
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        init();
+        initView();
+        initData();
     }
 
-    private void init() {
-        initDisplayMetrics();
-        //创建手势检测器
-        detector = new GestureDetector(this, this);
-        mImageView = (ImageView) findViewById(R.id.img_txt);
-        mTextView = (TextView) findViewById(R.id.txt_yema);
-        String[] strs = App.getInstance().gettag();
-        if(strs != null && strs.length == 2){
-            mUrl = strs[0];
-            mIndex = Integer.parseInt(strs[1]);
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(App.getInstance().ismIsUpdate()){
+            shuaxin(null);
+            App.getInstance().setmIsUpdate(false);
         }
-        mLoadingDialog = new LoadingDialog(this);
-        mLoadingDialog.setCancelable(false);
-        mLoadingDialog.setCanceledOnTouchOutside(false);
-        mLoadingDialog.showDialog();
-        mBiqugeUtil = new BiqugeUtil(mUrl);
-        mBiqugeUtil.getHttp(new callback() {
-            @Override
-            public void loadsuccess() {
-                mHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        mLoadingDialog.dismiss();
-                        load();
-                    }
-                });
-            }
+    }
 
+    private void initView() {
+        TextView txt_search = (TextView) findViewById(R.id.txt_search);
+        mList_txt = (ListView) findViewById(R.id.listview_txtlist);
+
+        txt_search.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void loaderror() {
-                mLoadingDialog.dismiss();
-                Log.e("txtread", "getHttp()--loaderror");
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        mList_txt.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                HomeTxtEntity homeTxtEntity = (HomeTxtEntity) mTxtAdapter.getItem(i);
+                Intent intent = new Intent(MainActivity.this, TxtDetailActivity.class);
+                intent.putExtra("url", homeTxtEntity.getHomeUrl());
+                startActivity(intent);
+            }
+        });
+
+        mList_txt.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                HomeTxtEntity homeTxtEntity = (HomeTxtEntity) mTxtAdapter.getItem(position);
+                App.getInstance().deleteHomeList(homeTxtEntity.getHomeUrl());
+                mList_homes.remove(homeTxtEntity);
+                mTxtAdapter.notifyDataSetChanged();
+                Toast.makeText(MainActivity.this, "删除成功!", Toast.LENGTH_SHORT).show();
+                return true;
             }
         });
     }
 
-    private void initDisplayMetrics() {
-        //定义DisplayMetrics 对象
-        DisplayMetrics dm = new DisplayMetrics();
-        //取得窗口属性
-        getWindowManager().getDefaultDisplay().getMetrics(dm);
-        App.getInstance().InitWidthAndHeigh(dm.widthPixels, dm.heightPixels);
-
-        Log.e("txtread", "dm.widthPixels: " + dm.widthPixels);
-        Log.e("txtread", "dm.heightPixels: " + dm.heightPixels);
+    private void initData() {
+        mTxtAdapter = new TxtAdapter(MainActivity.this);
+        mDownloadUtil = new DownloadUtil();
+        queryLocalData();
     }
 
-    private void load() {
-        isLoading = false;
-        mTotal = TxtUtil.paging();
-        if (mIndex < mTotal && mIndex >= 0) {
-            mImageView.setImageBitmap(TxtUtil.getBitMap(mIndex));
-            int ind = mIndex + 1;
-            mTextView.setText(ind + "/" + mTotal);
-        } else {
-            Toast.makeText(this, "数据格式错误,或没有数据!!", Toast.LENGTH_SHORT).show();
-        }
+    private void queryLocalData(){
+        final long a = System.currentTimeMillis();
+        mDownloadUtil.queryLocalData(new LocalCallBack() {
+            @Override
+            public void LocalSuccess(List<HomeTxtEntity> hts) {
+                mList_homes = hts;
+                mTxtAdapter.initData(mList_homes);
+                long b = System.currentTimeMillis() - a;
+                LogUtil.e("耗时：  " + b);
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mList_txt.setAdapter(mTxtAdapter);
+                    }
+                });
+                houtaiDownload();
+            }
+        }, false);
     }
 
-
-    //将该activity上的触碰事件交给GestureDetector处理
-    public boolean onTouchEvent(MotionEvent me) {
-        return detector.onTouchEvent(me);
+    private void shuaxin(final String des) {
+        mDownloadUtil.queryLocalData(new LocalCallBack() {
+            @Override
+            public void LocalSuccess(List<HomeTxtEntity> hts) {
+                mList_homes = hts;
+                mTxtAdapter.initData(hts);
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mTxtAdapter.notifyDataSetChanged();
+                        if(!TextUtils.isEmpty(des)){
+                            Toast.makeText(MainActivity.this, des, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        }, false);
     }
 
-    @Override
-    public boolean onDown(MotionEvent me) {
-        return false;
-    }
-
-    /**
-     * 滑屏监测
-     */
-    @Override
-    public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX,
-                           float velocityY) {
-        float minMove = 80;         //最小滑动距离
-        float minVelocity = 0;      //最小滑动速度
-        float beginX = e1.getX();
-        float endX = e2.getX();
-        float beginY = e1.getY();
-        float endY = e2.getY();
-
-        if (beginX - endX > minMove && Math.abs(velocityX) > minVelocity) {
-            //左滑
-            //Toast.makeText(this, velocityX + "左滑", Toast.LENGTH_SHORT).show();
-            hfy();
-        } else if (endX - beginX > minMove && Math.abs(velocityX) > minVelocity) {
-            //右滑
-            //Toast.makeText(this, velocityX + "右滑", Toast.LENGTH_SHORT).show();
-            qfy();
-        } else if (beginY - endY > minMove && Math.abs(velocityY) > minVelocity) {
-            //上滑
-            //Toast.makeText(this, velocityX + "上滑", Toast.LENGTH_SHORT).show();
-        } else if (endY - beginY > minMove && Math.abs(velocityY) > minVelocity) {
-            //下滑
-            //Toast.makeText(this, velocityX + "下滑", Toast.LENGTH_SHORT).show();
-        }
-
-        return false;
-    }
-
-    @Override
-    public void onShowPress(MotionEvent e) {
-    }
-
-    @Override
-    public void onLongPress(MotionEvent e) {
-    }
-
-    private void hfy(){
-        if(isLoading){
+    private void houtaiDownload() {
+        if (!App.getInstance().isWifiConnected() && !App.getInstance().isMobileConnected()) {
+            Toast.makeText(MainActivity.this, "当前未连接网络!", Toast.LENGTH_SHORT).show();
             return;
         }
-        isLoading = true;
-        mIndex++;
-        if (mTotal <= mIndex) {
-            mIndex--;
-            //Toast.makeText(this, "已经是最后一页!!", Toast.LENGTH_SHORT).show();
-            mImageView.setImageBitmap(null);
-            mLoadingDialog.showDialog();
-            mBiqugeUtil.nextpage(new callback() {
-                @Override
-                public void loadsuccess() {
-                    mIndex = 0;
-                    mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            mLoadingDialog.dismiss();
-                            load();
+        try {
+            final List<String> homeList = App.getInstance().getHomeList();
+            final List<String> temp = new ArrayList<>();
+            temp.addAll(homeList);
+            for (String path : homeList) {
+                // 强制刷新列表数据
+                HttpUtil.httpGetUrl(path, true, new HttpCallback() {
+                    @Override
+                    public void httpSuccess(String data, String url) {
+                        if (temp.contains(url)) {
+                            temp.remove(url);
+                            if (temp.size() == 0) {
+                                LogUtil.e("书架数据刷新完成!");
+                                shuaxin("书架刷新完成!");
+                            }
                         }
-                    });
-                }
+                    }
 
-                @Override
-                public void loaderror() {
-                    isLoading = false;
-                    mLoadingDialog.dismiss();
-                    Log.e("txtread", "nextpage()--loaderror");
-                }
-            });
-        } else {
-            load();
+                    @Override
+                    public void httpError(String des) {
+                        LogUtil.e("MainActivity--强刷书架数据ERROR: " + des);
+                    }
+                });
+            }
+        } catch (Exception e) {
+            e.getStackTrace();
         }
     }
 
-    private void qfy(){
-        if(isLoading){
-            return;
-        }
-        isLoading = true;
-        mIndex--;
-        if (mIndex < 0) {
-            mIndex++;
-            //Toast.makeText(this, "已经是第一页!!", Toast.LENGTH_SHORT).show();
-            mImageView.setImageBitmap(null);
-            mLoadingDialog.showDialog();
-            mBiqugeUtil.prevpage(new callback() {
-                @Override
-                public void loadsuccess() {
-                    mTotal = TxtUtil.paging();
-                    mIndex = mTotal - 1;
-                    mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            mLoadingDialog.dismiss();
-                            load();
-                        }
-                    });
-                }
-
-                @Override
-                public void loaderror() {
-                    isLoading = false;
-                    mLoadingDialog.dismiss();
-                    Log.e("txtread", "prevpage()--loaderror");
-                }
-            });
-        } else {
-            load();
-        }
-    }
-
-
-    @Override
-    public boolean onSingleTapUp(MotionEvent me) {
-        float x = me.getX();
-        float y = me.getY();
-        int w = App.getInstance().mScreenWidth / 3;
-        int yw = 2 * w;
-
-        if(x < w){
-            qfy();
-        }
-        if(x > yw){
-            hfy();
-        }
-
-        //Toast.makeText(this, "您单击的位置是:\nx:" + x + "\n y:" + y, Toast.LENGTH_SHORT).show();
-        return false;
-    }
-
-
-    @Override
-    public boolean onScroll(MotionEvent e1, MotionEvent e2, float velocityX,
-                            float velocityY) {
-        return false;
-    }
 }

@@ -1,4 +1,4 @@
-package com.example.administrator.txtread;
+package com.example.administrator.dialog;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -8,6 +8,8 @@ import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.example.administrator.txtread.R;
 
 public class LoadingDialog extends Dialog {
     private ImageView img;

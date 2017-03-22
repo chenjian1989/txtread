@@ -1,0 +1,52 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/white">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="@drawable/btn_item">
+        <ImageView
+            android:id="@+id/image_fengmian"
+            android:layout_width="60dp"
+            android:layout_height="80dp"
+            android:layout_marginLeft="20dp"
+            android:layout_centerVertical="true"
+            android:scaleType="fitXY"
+            android:src="@drawable/default_s"/>
+
+        <TextView
+            android:id="@+id/txt_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="100dp"
+            android:layout_marginTop="10dp"
+            android:textColor="@color/Black"
+            android:textSize="14sp"
+            android:text="雪鹰领主"/>
+
+        <TextView
+            android:id="@+id/txt_author"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="100dp"
+            android:textColor="@color/Black"
+            android:layout_centerVertical="true"
+            android:textSize="14sp"
+            android:text="作者：耳根"/>
+
+        <TextView
+            android:id="@+id/txt_newest"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="100dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="10dp"
+            android:maxLines="1"
+            android:textColor="@color/Black"
+            android:textSize="14sp"
+            android:text="最新章节： 第35篇 第34章 浑源兵器,炼成"/>
+    </RelativeLayout>
+
+</RelativeLayout>
