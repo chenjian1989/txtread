@@ -122,10 +122,6 @@ public class TxtUtil {
         textColor = color;
     }
 
-    public static void setbColor(int color) {
-        bColor = color;
-    }
-
     /**
      * 设置行距大小
      *
@@ -149,12 +145,6 @@ public class TxtUtil {
                 ps[i] = ps[i] + "  ";
                 paragphdatas.add(ps[i]);
             }
-//            if (paragphdatas.size() > 0) {
-//                String lastp = paragphdatas.get(paragphdatas.size() - 1).substring(0,
-//                        paragphdatas.get(paragphdatas.size() - 1).length() - 1);
-//                paragphdatas.remove(paragphdatas.size() - 1);
-//                paragphdatas.add(lastp);
-//            }
         } else {
             paragphdatas.add(datas);
         }
@@ -168,7 +158,6 @@ public class TxtUtil {
      * @return
      */
     public static List<String> SeparateParagraphtoLines(String paragraphstr) {
-
         List<String> linesdata = new ArrayList<>();
         String str = paragraphstr;
         for (; str.length() > 0; ) {
@@ -256,20 +245,19 @@ public class TxtUtil {
      * @return
      */
     public static Bitmap getBitMap(int index) {
-        long a = System.currentTimeMillis();
         Bitmap bitmap = Bitmap.createBitmap(App.getInstance().mScreenWidth, App.getInstance().mScreenHeight, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
         canvas.setDrawFilter(new PaintFlagsDrawFilter(0, Paint.ANTI_ALIAS_FLAG | Paint.FILTER_BITMAP_FLAG));
         canvas.drawColor(bColor);
         Paint paint = getTxtPaint();
         int FontHeight = getFontHeight();
-        //LogUtil.e("FontHeight: " + FontHeight);
+        // LogUtil.e("FontHeight: " + FontHeight);
         List<String> lines = parsingData();
-        //LogUtil.e("lines.size(): " + lines.size());
+        // LogUtil.e("lines.size(): " + lines.size());
         int x = mX;
         int y = mY;
         int count = getHang();
-        //LogUtil.e("count: " + count);
+        // LogUtil.e("count: " + count);
         int i = index * count;
         int end = count * (index + 1);
         for (; i < end; i++) {
@@ -281,8 +269,6 @@ public class TxtUtil {
             }
         }
         App.getInstance().savetag(mHomeUrl, mUrl, index);
-        long b = System.currentTimeMillis() - a;
-        //LogUtil.e("getBitmap()耗时: " + b);
         return bitmap;
     }
 
