@@ -1,8 +1,6 @@
 package com.example.administrator.txtread;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.AdapterView;
@@ -12,18 +10,20 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import com.example.administrator.Util.DownloadUtil;
-import com.example.administrator.Util.HttpCallback;
 import com.example.administrator.Util.HttpUtil;
 import com.example.administrator.Util.LogUtil;
 import com.example.administrator.adapter.SearchAdapter;
-import com.example.administrator.dialog.LoadingDialog;
+import com.example.administrator.application.App;
+import com.example.administrator.base.CommonBaseActivity;
+import com.example.administrator.dialog.ConfirmDialog;
 import com.example.administrator.entity.SearchEntity;
+import com.example.administrator.inter.HttpCallback;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SearchActivity extends Activity {
+public class SearchActivity extends CommonBaseActivity {
 
     private EditText mEdit_search;
 
@@ -32,10 +32,6 @@ public class SearchActivity extends Activity {
     private SearchAdapter mSearchAdapter;
 
     private DownloadUtil mDownloadUtil;
-
-    private LoadingDialog mLoadingDialog;
-
-    private Handler mHandler = new Handler();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,29 +48,37 @@ public class SearchActivity extends Activity {
 
         mListview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                final List<String> lists = new ArrayList<>();
-                SearchEntity s = (SearchEntity) mSearchAdapter.getItem(i);
-                lists.add(s.getHomeUrl());
-                for (String path : lists) {
-                    mLoadingDialog.showDialog();
-                    // 强制刷新列表数据
-                    HttpUtil.httpGetUrl(path, true, new HttpCallback() {
-                        @Override
-                        public void httpSuccess(String data, String url) {
-                            LogUtil.e(url + "添加到书架----ok!!");
-                            mainToast("成功添加到书架!");
-                            App.getInstance().saveHomeList(lists);
-                            App.getInstance().setmIsUpdate(true);
+            public void onItemClick(AdapterView<?> adapterView, View view, final int i, long l) {
+                ConfirmDialog confirmDialog = new ConfirmDialog(SearchActivity.this, "确定添加到书架!", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        SearchEntity s = (SearchEntity) mSearchAdapter.getItem(i);
+                        List<String> homeList = App.getInstance().getHomeList();
+                        if (homeList.contains(s.getHomeUrl())) {
+                            App.getInstance().showToast("已经在书架中!");
+                            return;
                         }
+                        final List<String> lists = new ArrayList<>();
+                        lists.add(s.getHomeUrl());
+                        showSelfDefineDialog(true);
+                        HttpUtil.httpGetUrl(s.getHomeUrl(), true, new HttpCallback() {
+                            @Override
+                            public void httpSuccess(String data, String url) {
+                                LogUtil.e(url + "添加到书架----ok!!");
+                                mainToast("成功添加到书架!");
+                                App.getInstance().saveHomeList(lists);
+                                App.getInstance().setmIsUpdate(true);
+                            }
 
-                        @Override
-                        public void httpError(String des) {
-                            LogUtil.e("SearchActivity-HttpError: " + des);
-                            mainToast("加入书架失败!");
-                        }
-                    });
-                }
+                            @Override
+                            public void httpError(String des) {
+                                LogUtil.e("SearchActivity-HttpError: " + des);
+                                mainToast("加入书架失败!");
+                            }
+                        }, false);
+                    }
+                });
+                confirmDialog.show();
             }
         });
 
@@ -82,8 +86,8 @@ public class SearchActivity extends Activity {
             @Override
             public void onClick(View v) {
                 String str = mEdit_search.getText().toString();
-                if(!TextUtils.isEmpty(str)){
-                    mLoadingDialog.showDialog();
+                if (!TextUtils.isEmpty(str)) {
+                    showSelfDefineDialog(true);
                     SearchXs(str);
                 } else {
                     Toast.makeText(SearchActivity.this, "不能为空!", Toast.LENGTH_SHORT).show();
@@ -93,17 +97,13 @@ public class SearchActivity extends Activity {
 
         mSearchAdapter = new SearchAdapter(SearchActivity.this);
         mDownloadUtil = new DownloadUtil();
-        // 加载动画
-        mLoadingDialog = new LoadingDialog(this);
-        mLoadingDialog.setCancelable(true);
-        mLoadingDialog.setCanceledOnTouchOutside(false);
     }
 
-    private void mainToast(final String str){
-        mHandler.post(new Runnable() {
+    private void mainToast(final String str) {
+        runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                mLoadingDialog.dismiss();
+                removeSelfDefineDialog();
                 Toast.makeText(SearchActivity.this, str, Toast.LENGTH_SHORT).show();
             }
         });
@@ -118,10 +118,10 @@ public class SearchActivity extends Activity {
                 @Override
                 public void httpSuccess(String data, String url) {
                     final List<SearchEntity> searchEntities = mDownloadUtil.query(data);
-                    mHandler.post(new Runnable() {
+                    runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            mLoadingDialog.dismiss();
+                            removeSelfDefineDialog();
                             mSearchAdapter.initData(searchEntities);
                             mListview.setAdapter(mSearchAdapter);
                         }
@@ -133,7 +133,7 @@ public class SearchActivity extends Activity {
                     LogUtil.e("MainActivity-HttpError: " + des);
                     mainToast("搜索异常!");
                 }
-            });
+            }, false);
         } catch (UnsupportedEncodingException e) {
             e.getStackTrace();
         }

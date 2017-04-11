@@ -8,12 +8,15 @@ import android.graphics.PaintFlagsDrawFilter;
 import android.graphics.Typeface;
 import android.text.TextUtils;
 
-import com.example.administrator.txtread.App;
+import com.example.administrator.application.App;
+import com.example.administrator.txtread.R;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class TxtUtil {
+
+    private static String mTitle = "";
 
     private static String mData = "";
 
@@ -31,7 +34,7 @@ public class TxtUtil {
     private static int mHangju = 0;
 
     // 字体大小 （小米是 55）默认 30
-    private static int mTextSize = 55;
+    private static int mTextSize = 30;
 
     private static int mY = mTextSize + 30;
 
@@ -39,9 +42,17 @@ public class TxtUtil {
     private static int textColor = Color.BLACK;
 
     // 背景颜色
-    private static int bColor = Color.WHITE;
+    private static int bColor = App.getInstance().getColorByResid(R.color.transparent);
 
     private static List<String> mLines = new ArrayList<>();
+
+    public static String getmTitle() {
+        return mTitle;
+    }
+
+    public static void setmTitle(String title) {
+        mTitle = title;
+    }
 
     /**
      * 获取格式化后的数据
@@ -84,7 +95,7 @@ public class TxtUtil {
             mPaint = new Paint();
             mPaint.setColor(textColor);
             mPaint.setTypeface(Typeface.DEFAULT);
-            //paint.setAntiAlias(true);
+            mPaint.setAntiAlias(true);
             mPaint.setFilterBitmap(true);
             mPaint.setSubpixelText(true);
             mPaint.setTextSize(mTextSize);

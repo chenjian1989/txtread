@@ -6,6 +6,9 @@ import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.widget.ImageView;
 
+import com.example.administrator.inter.HttpCallback;
+import com.example.administrator.inter.ImageCallback;
+
 public class PicUtil {
 
     /**

@@ -1,15 +1,13 @@
 package com.example.administrator.txtread;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -17,20 +15,20 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.administrator.Util.DownloadUtil;
-import com.example.administrator.Util.LocalCallBack;
 import com.example.administrator.Util.LogUtil;
 import com.example.administrator.Util.TxtUtil;
-import com.example.administrator.Util.callback;
 import com.example.administrator.adapter.ZhangjieAdapter;
-import com.example.administrator.dialog.LoadingDialog;
+import com.example.administrator.application.App;
+import com.example.administrator.base.CommonBaseActivity;
 import com.example.administrator.entity.HomeTxtEntity;
+import com.example.administrator.inter.LocalCallBack;
+import com.example.administrator.inter.battery;
+import com.example.administrator.inter.callback;
 
-import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
 
-
-public class TxtDetailActivity extends Activity implements GestureDetector.OnGestureListener, battery {
+public class TxtDetailActivity extends CommonBaseActivity implements GestureDetector.OnGestureListener, battery {
     private ImageView mImageView;
     private TextView mTextView;
     private RelativeLayout mRel_list;
@@ -39,11 +37,12 @@ public class TxtDetailActivity extends Activity implements GestureDetector.OnGes
     private TextView mText_time;
     private TextView mText_dianliang;
     private TextView mText_zhang;
+    private RelativeLayout mRel_menu;
 
     //定义手势检测器实例
     private GestureDetector detector;
     // http://www.biquge.tw/9_9080/5134179.html
-    private String mUrl = "http://www.biquge.tw/9_9080/5306729.html";
+    private String mUrl;
 
     private String mHomeUrl;
 
@@ -61,98 +60,66 @@ public class TxtDetailActivity extends Activity implements GestureDetector.OnGes
 
     private DownloadUtil mDownloadUtil;
 
-    private LoadingDialog mLoadingDialog;
-
     private ZhangjieAdapter mZhangjie;
 
     private boolean isZhangjie = false;
 
-    private static final int MSG_LOAD = 1;
-
-    private static final int MSG_ERROR = 2;
-
-    private static final int MSG_TIME = 3;
-
-    private static final int MSG_LOAD_CHAPTER = 4;
-
-    private static final String DATE_FORMAT = "HH:mm:ss";
-
-    private MyHandler myHandler;
-
-    private static class MyHandler extends Handler {
-        WeakReference<TxtDetailActivity> mActivityReference;
-
-        MyHandler(TxtDetailActivity activity) {
-            mActivityReference = new WeakReference<>(activity);
-        }
-
-        @Override
-        public void handleMessage(Message msg) {
-            final TxtDetailActivity activity = mActivityReference.get();
-            if (activity != null) {
-                switch (msg.what) {
-                    case MSG_LOAD:
-                        activity.MainLoad();
-                        break;
-                    case MSG_ERROR:
-                        activity.MainErrorToast(msg.obj.toString());
-                        break;
-                    case MSG_TIME:
-                        activity.mText_time.setText(App.getInstance().getDate(DATE_FORMAT));
-                        break;
-                    case MSG_LOAD_CHAPTER:
-                        activity.init();
-                        break;
-                }
-            }
-        }
-    }
+    private final String DATE_FORMAT = "HH:mm:ss";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_txtdetail);
-
         mHomeUrl = getIntent().getStringExtra("url");
-        myHandler = new MyHandler(this);
-        // 加载动画
-        mLoadingDialog = new LoadingDialog(this);
-        mLoadingDialog.setCancelable(false);
-        mLoadingDialog.setCanceledOnTouchOutside(false);
-        mLoadingDialog.showDialog();
         // 下载工具初始化
         mDownloadUtil = new DownloadUtil();
+        showSelfDefineDialog(true);
         mDownloadUtil.queryLocaData(new LocalCallBack() {
             @Override
             public void LocalSuccess(List<HomeTxtEntity> hts) {
-                if(hts.size() == 1){
+                if (hts.size() == 1) {
                     mChapters = hts.get(0).getChapters();
-                    myHandler.sendEmptyMessage(MSG_LOAD_CHAPTER);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            init_Chapters();
+                        }
+                    });
                 }
             }
         }, mHomeUrl);
+        init();
+    }
+
+    private void init_Chapters() {
+        if (mChapters != null && mChapters.size() > 0) {
+            mDownloadUtil.setChapters(mChapters);
+            // 创建章节列表适配器
+            mZhangjie = new ZhangjieAdapter(TxtDetailActivity.this);
+            mZhangjie.initData(mChapters);
+            mListView.setAdapter(mZhangjie);
+            if (TextUtils.isEmpty(mUrl)) {
+                mUrl = mChapters.get(0).split(";")[0];
+                mDownloadUtil.setUrl(mUrl);
+                initData();
+            } else {
+                setZhangjieAndName();
+            }
+        }
     }
 
     private void init() {
-        mLoadingDialog.dismiss();
-        if (mChapters != null && mChapters.size() > 0) {
-            mUrl = mChapters.get(0).split(";")[0];
-        }
-
         String[] strs = App.getInstance().gettag(mHomeUrl);
         if (strs != null && strs.length == 2) {
             mUrl = strs[0];
             mIndex = Integer.parseInt(strs[1]);
         }
-
+        // 初始化屏幕分辨率
         initDisplayMetrics();
         // 注册电量监听
         App.getInstance().registerReceiver(this);
         // 创建手势检测器
         detector = new GestureDetector(this, this);
-        // 创建章节列表适配器
-        mZhangjie = new ZhangjieAdapter(TxtDetailActivity.this);
-        mZhangjie.initData(mChapters);
 
         mDownloadUtil.init(mUrl, mHomeUrl, mChapters);
 
@@ -172,9 +139,42 @@ public class TxtDetailActivity extends Activity implements GestureDetector.OnGes
 //        // 后台刷新时间
 //        shuaxinTime();
 
+        mRel_menu = (RelativeLayout) findViewById(R.id.rel_menu);
+        Button button_list = (Button) findViewById(R.id.btn_zhangjie);
+        Button button_xiazai = (Button) findViewById(R.id.btn_xiazai);
+        Button button_xiazai1 = (Button) findViewById(R.id.btn_xiazai1);
+
+        button_list.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mRel_menu.setVisibility(View.GONE);
+                mRel_list.setVisibility(View.VISIBLE);
+                mZhangjie.notifyDataSetChanged();
+                mListView.setSelection(mZhuangjieIndex);
+            }
+        });
+
+        button_xiazai.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mRel_menu.setVisibility(View.GONE);
+                // 后台缓存当前章节以后的所有数据
+                mDownloadUtil.DownFuture(50);
+            }
+        });
+
+        button_xiazai1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mRel_menu.setVisibility(View.GONE);
+                // 后台缓存当前章节以后的所有数据
+                mDownloadUtil.DownFuture(500);
+            }
+        });
+
         mRel_list = (RelativeLayout) findViewById(R.id.rel_list);
         mListView = (ListView) findViewById(R.id.listview_txtlist);
-        mListView.setAdapter(mZhangjie);
+
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -187,15 +187,17 @@ public class TxtDetailActivity extends Activity implements GestureDetector.OnGes
                 mRel_list.setVisibility(View.GONE);
                 isZhangjie = false;
                 // 清空imageview 并重新加载bitmap
-                clearAll();
+                // clearAll();
                 initData();
             }
         });
-        initData();
+        if (!TextUtils.isEmpty(mUrl)) {
+            initData();
+        }
     }
 
     private void initData() {
-        mLoadingDialog.showDialog();
+        showSelfDefineDialog(true);
         mDownloadUtil.DownloadData(new callback() {
             @Override
             public void loadsuccess(String url) {
@@ -209,8 +211,6 @@ public class TxtDetailActivity extends Activity implements GestureDetector.OnGes
                 LogUtil.e("getHttp()--loaderror " + str);
             }
         });
-        // 后台缓存当前章节以后的所有数据
-        //mDownloadUtil.DownFuture();
     }
 
     private void initDisplayMetrics() {
@@ -246,6 +246,8 @@ public class TxtDetailActivity extends Activity implements GestureDetector.OnGes
                     return i + "/" + mChapters.size();
                 }
             }
+        } else {
+            return "章节正在初始化!";
         }
         return "";
     }
@@ -260,7 +262,12 @@ public class TxtDetailActivity extends Activity implements GestureDetector.OnGes
                     } catch (Exception e) {
                         e.getStackTrace();
                     }
-                    myHandler.sendEmptyMessage(MSG_TIME);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mText_time.setText(App.getInstance().getDate(DATE_FORMAT));
+                        }
+                    });
                 }
             }
         }).start();
@@ -325,8 +332,8 @@ public class TxtDetailActivity extends Activity implements GestureDetector.OnGes
         mIndex++;
         if (mTotal <= mIndex) {
             mIndex--;
-            clearAll();
-            mLoadingDialog.showDialog();
+            // clearAll();
+            showSelfDefineDialog(true);
             mDownloadUtil.nextpage(new callback() {
                 @Override
                 public void loadsuccess(String url) {
@@ -355,8 +362,8 @@ public class TxtDetailActivity extends Activity implements GestureDetector.OnGes
         mIndex--;
         if (mIndex < 0) {
             mIndex++;
-            clearAll();
-            mLoadingDialog.showDialog();
+            // clearAll();
+            showSelfDefineDialog(true);
             mDownloadUtil.prevpage(new callback() {
                 @Override
                 public void loadsuccess(String url) {
@@ -385,37 +392,47 @@ public class TxtDetailActivity extends Activity implements GestureDetector.OnGes
     }
 
     private void success() {
-        myHandler.sendEmptyMessage(MSG_LOAD);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                removeSelfDefineDialog();
+                setZhangjieAndName();
+                load();
+            }
+        });
     }
 
     private void loaderrors(String str) {
         if (TextUtils.isEmpty(str)) {
             str = "未知错误";
         }
-        Message message = new Message();
-        message.obj = str;
-        message.what = MSG_ERROR;
-        myHandler.handleMessage(message);
+        MainErrorToast(str);
     }
 
-    private void MainErrorToast(String str) {
-        Toast.makeText(TxtDetailActivity.this, str, Toast.LENGTH_SHORT).show();
-        mLoadingDialog.dismiss();
-        load();
+    private void MainErrorToast(final String str) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(TxtDetailActivity.this, str, Toast.LENGTH_SHORT).show();
+                removeSelfDefineDialog();
+                setZhangjieAndName();
+            }
+        });
     }
 
-    private void MainLoad() {
-        mLoadingDialog.dismiss();
+    private void setZhangjieAndName() {
         mText_zhangjie.setText(calcZhangjie());
+        if (TextUtils.isEmpty(mZhangjieName)) {
+            mZhangjieName = TxtUtil.getmTitle();
+        }
         mText_zhang.setText(mZhangjieName);
-        load();
     }
-
 
     @Override
     public boolean onSingleTapUp(MotionEvent me) {
         if (isZhangjie) {
             mRel_list.setVisibility(View.GONE);
+            mRel_menu.setVisibility(View.GONE);
             isZhangjie = false;
             return false;
         }
@@ -426,15 +443,18 @@ public class TxtDetailActivity extends Activity implements GestureDetector.OnGes
         int h = App.getInstance().mScreenHeight / 3;
         int yh = 2 * h;
 
-        if((x > yw && y > h) || y > yh){
+        if ((x > yw && y > h) || y > yh) {
             hfy();
-        } else if(x < w || y < h){
+        } else if (x < w || y < h) {
             qfy();
         } else {
             // 点击中间部分，显示章节列表
-            mRel_list.setVisibility(View.VISIBLE);
-            isZhangjie = true;
-            mListView.setSelection(mZhuangjieIndex);
+            if (mChapters != null && mChapters.size() > 0) {
+                mRel_menu.setVisibility(View.VISIBLE);
+                isZhangjie = true;
+            } else {
+                Toast.makeText(TxtDetailActivity.this, "章节正在初始化,请稍后!", Toast.LENGTH_SHORT).show();
+            }
         }
         return false;
     }

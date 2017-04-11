@@ -1,4 +1,4 @@
-package com.example.administrator.Util;
+package com.example.administrator.inter;
 
 public interface HttpCallback {
     void httpSuccess(String data, String url);

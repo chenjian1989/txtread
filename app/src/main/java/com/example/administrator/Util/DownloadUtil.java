@@ -5,7 +5,12 @@ import android.text.TextUtils;
 import com.example.administrator.entity.HomeTxtEntity;
 import com.example.administrator.entity.SearchEntity;
 import com.example.administrator.entity.TxtEntity;
-import com.example.administrator.txtread.App;
+import com.example.administrator.inter.DownCallback;
+import com.example.administrator.inter.HttpCallback;
+import com.example.administrator.inter.Ihtml;
+import com.example.administrator.inter.LocalCallBack;
+import com.example.administrator.inter.callback;
+import com.example.administrator.application.App;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,14 +35,21 @@ public class DownloadUtil {
     }
 
     public void init(String url, String homeurl, ArrayList<String> chapters) {
-        mUrl = url;
+        if(!TextUtils.isEmpty(url)){
+            mUrl = url;
+            mHtml = InitHtml(url);
+        }
         mHomeUrl = homeurl;
-        mHtml = InitHtml(url);
+        mChapters = chapters;
+    }
+
+    public void setChapters(ArrayList<String> chapters){
         mChapters = chapters;
     }
 
     public void setUrl(String url) {
         mUrl = url;
+        mHtml = InitHtml(url);
     }
 
     /**
@@ -58,6 +70,11 @@ public class DownloadUtil {
         new Thread(new Runnable() {
             @Override
             public void run() {
+//                try{
+//                    Thread.sleep(4000);
+//                } catch (Exception e){
+//                    e.getStackTrace();
+//                }
                 List<HomeTxtEntity> lists = new ArrayList<>();
                 Ihtml html_home = InitHtml(homeurl);
                 String value = App.getInstance().getData(homeurl);
@@ -125,7 +142,7 @@ public class DownloadUtil {
             public void httpError(String des) {
                 c.loaderror(des);
             }
-        });
+        }, false);
     }
 
     private int ii = 0;
@@ -140,6 +157,7 @@ public class DownloadUtil {
         // 解析章节数据
         TxtEntity txtEntity = mHtml.jiexishuju(str, mUrl);
         if (TextUtils.isEmpty(txtEntity.getError())) {
+            TxtUtil.setmTitle(txtEntity.getTitle());
             TxtUtil.setData(txtEntity.getData(), mUrl, mHomeUrl);
             mPager_next = txtEntity.getNext();
             mPager_prev = txtEntity.getPrev();
@@ -160,6 +178,8 @@ public class DownloadUtil {
                     break;
                 }
             }
+        } else {
+            return mPager_next;
         }
         return null;
     }
@@ -175,6 +195,8 @@ public class DownloadUtil {
                     break;
                 }
             }
+        } else {
+            return mPager_prev;
         }
         return null;
     }
@@ -271,7 +293,7 @@ public class DownloadUtil {
      * 预加载或后台下载缓存到本地
      */
     private void prestrain(List<String> nexts, final DownCallback callback) {
-        if (!App.getInstance().isWifiConnected() && !App.getInstance().isMobileConnected()) {
+        if (!App.getInstance().isNetworkAvailable()) {
             LogUtil.e("DownloadUtil--prestrain--当前未连接网络!");
             return;
         }
@@ -295,28 +317,36 @@ public class DownloadUtil {
                     public void httpError(String des) {
                         LogUtil.e("DownloadUtil-prestrain-HttpError: " + des);
                     }
-                });
+                }, true);
             }
         }
     }
 
-    private void prestrain(int Count, DownCallback callback) {
-        List<String> nexts = getNextpageUrl(Count);
-        prestrain(nexts, callback);
+    private void prestrain(final int Count, final DownCallback callback) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                prestrain(getNextpageUrl(Count), callback);
+            }
+        }).start();
     }
 
     /**
      * 缓存当前章节以后的所有数据
      */
-    public void DownFuture() {
-        List<String> nexts = getNextpageUrl(10000);
-        prestrain(nexts, new DownCallback() {
-            @Override
-            public void donestate(int index, int end) {
-                if (index == end) {
-                    LogUtil.e("预加载数据完成!");
+    public void DownFuture(int count) {
+        if(App.getInstance().isNetworkAvailable()){
+            prestrain(count, new DownCallback() {
+                @Override
+                public void donestate(int index, int end) {
+                    if (index == end) {
+                        LogUtil.e("预加载数据完成!");
+                        App.getInstance().showToast("缓存下载完成!");
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            App.getInstance().showToast("当前未连接网络!");
+        }
     }
 }

@@ -1,4 +1,4 @@
-package com.example.administrator.txtread;
+package com.example.administrator.application;
 
 import android.app.Application;
 import android.content.ContentValues;
@@ -9,12 +9,19 @@ import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
+import android.view.Gravity;
+import android.widget.Toast;
 
 import com.example.administrator.Util.DisplayUtil;
 import com.example.administrator.db.DBHelper;
 import com.example.administrator.db.DBManager;
 import com.example.administrator.db.MobileColumn;
+import com.example.administrator.inter.battery;
+import com.example.administrator.receiver.BatteryReceiver;
+import com.example.administrator.txtread.TxtDetailActivity;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -44,6 +51,10 @@ public class App extends Application {
 
     private BatteryReceiver mBatteryReceiver;
 
+    private Handler mHandler = new Handler();
+
+    private Toast mToast;
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -59,6 +70,22 @@ public class App extends Application {
 
     public void registerReceiver(battery b) {
         mBatteryReceiver.registerReceiver(b);
+    }
+
+    /**
+     * 显示提示信息
+     */
+    public void showToast(final String msg) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mToast != null) {
+                    mToast.cancel();
+                }
+                mToast = Toast.makeText(instance, msg, Toast.LENGTH_SHORT);
+                mToast.show();
+            }
+        });
     }
 
     public void InitWidthAndHeigh(int with, int height) {
@@ -204,7 +231,7 @@ public class App extends Application {
     }
 
     /**
-     * 获取当前的网络状态
+     * 获取当前的网络连接状态
      *
      * @return
      */
@@ -213,6 +240,28 @@ public class App extends Application {
         NetworkInfo mNetworkInfo = mConnectivityManager.getActiveNetworkInfo();
         if (mNetworkInfo != null) {
             return mNetworkInfo.isAvailable();
+        }
+        return false;
+    }
+
+    /**
+     * 检查网络是否好用.
+     *
+     * @return true or false
+     */
+    public boolean isNetworkAvailable() {
+        ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (cm != null) {
+            // 如果仅仅是用来判断网络连接　　　　　　
+            // 则可以使用 cm.getActiveNetworkInfo().isAvailable();
+            NetworkInfo[] info = cm.getAllNetworkInfo();
+            if (info != null) {
+                for (NetworkInfo workinfo : info) {
+                    if (workinfo.getState() == NetworkInfo.State.CONNECTED) {
+                        return true;
+                    }
+                }
+            }
         }
         return false;
     }
@@ -292,5 +341,9 @@ public class App extends Application {
 
     public void setmIsUpdate(boolean mIsUpdate) {
         this.mIsUpdate = mIsUpdate;
+    }
+
+    public int getColorByResid(int id){
+        return getResources().getColor(id);
     }
 }

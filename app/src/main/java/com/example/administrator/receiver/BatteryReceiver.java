@@ -1,8 +1,11 @@
-package com.example.administrator.txtread;
+package com.example.administrator.receiver;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+
+import com.example.administrator.inter.battery;
+import com.example.administrator.application.App;
 
 public class BatteryReceiver extends BroadcastReceiver {
 

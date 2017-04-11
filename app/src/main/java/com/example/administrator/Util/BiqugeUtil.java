@@ -5,7 +5,8 @@ import android.text.TextUtils;
 import com.example.administrator.entity.HomeTxtEntity;
 import com.example.administrator.entity.SearchEntity;
 import com.example.administrator.entity.TxtEntity;
-import com.example.administrator.txtread.App;
+import com.example.administrator.inter.Ihtml;
+import com.example.administrator.application.App;
 
 import java.util.ArrayList;
 import java.util.List;

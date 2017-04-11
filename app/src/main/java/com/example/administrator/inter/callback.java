@@ -1,4 +1,4 @@
-package com.example.administrator.Util;
+package com.example.administrator.inter;
 
 public interface callback {
     void loadsuccess(String url);

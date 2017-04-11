@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="bigloading_w_h">40dip</dimen>
+    <dimen name="dialog_layout_width">210dp</dimen>
+    <dimen name="dialog_title_height">52dip</dimen>
+    <dimen name="fontsize_bar_title">18sp</dimen>
+    <dimen name="fontsize_content_title">17sp</dimen>
+</resources>

@@ -1,12 +1,14 @@
 package com.example.administrator.adapter;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.example.administrator.application.App;
 import com.example.administrator.txtread.R;
 
 import java.util.ArrayList;
@@ -49,16 +51,24 @@ public class ZhangjieAdapter extends BaseAdapter {
             viewHolder = new ViewHolder();
             convertView = LayoutInflater.from(mCt).inflate(R.layout.item_zhangjie, null);
             viewHolder.textView_name = (TextView) convertView.findViewById(R.id.txt_name);
+            viewHolder.textView_hc = (TextView) convertView.findViewById(R.id.txt_hc);
             convertView.setTag(viewHolder);
         } else {
             viewHolder = (ViewHolder) convertView.getTag();
         }
         String str = getItem(position).toString();
+        String value = App.getInstance().getData(str.split(";")[0]);
+        if(!TextUtils.isEmpty(value)){
+            viewHolder.textView_hc.setVisibility(View.VISIBLE);
+        } else {
+            viewHolder.textView_hc.setVisibility(View.GONE);
+        }
         viewHolder.textView_name.setText(str.split(";")[1]);
         return convertView;
     }
 
     private final class ViewHolder {
         private TextView textView_name;
+        private TextView textView_hc;
     }
 }

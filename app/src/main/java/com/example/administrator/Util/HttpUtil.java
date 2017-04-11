@@ -2,7 +2,8 @@ package com.example.administrator.Util;
 
 import android.text.TextUtils;
 
-import com.example.administrator.txtread.App;
+import com.example.administrator.application.App;
+import com.example.administrator.inter.HttpCallback;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -25,7 +26,7 @@ public class HttpUtil {
 
     private static ExecutorService mFixedThreadPool = Executors.newFixedThreadPool(20);
 
-    public static String httpGetUrl(final String path, boolean isForce, final HttpCallback callback) {
+    public static String httpGetUrl(final String path, boolean isForce, final HttpCallback callback, boolean isNet) {
         if (!isForce) {
             // 先在本地缓存找，如果存在直接返回
             String value = App.getInstance().getData(path);
@@ -33,29 +34,35 @@ public class HttpUtil {
                 return value;
             }
         }
-        mFixedThreadPool.execute(new Runnable() {
-            @Override
-            public void run() {
-                String str = getStringByBytes(http(path));
-                //将返回的数据保存到本地缓存中
-                if (!TextUtils.isEmpty(str)) {
-                    App.getInstance().saveData(path, str);
-                    if (callback != null) {
-                        callback.httpSuccess(str, path);
-                    }
-                } else {
-                    if (callback != null) {
-                        callback.httpError("未获取到数据!");
+        if (isNet || App.getInstance().isNetworkAvailable()) {
+            mFixedThreadPool.execute(new Runnable() {
+                @Override
+                public void run() {
+                    String str = getStringByBytes(http(path));
+                    //将返回的数据保存到本地缓存中
+                    if (!TextUtils.isEmpty(str)) {
+                        App.getInstance().saveData(path, str);
+                        if (callback != null) {
+                            callback.httpSuccess(str, path);
+                        }
+                    } else {
+                        if (callback != null) {
+                            callback.httpError("未获取到数据!");
+                        }
                     }
                 }
+            });
+        } else {
+            if (callback != null) {
+                callback.httpError("未连接网络!");
             }
-        });
+        }
         return null;
     }
 
-    public static void httpGetUrl(boolean isForce, String path, HttpCallback callback){
-        String str = httpGetUrl(path, isForce, callback);
-        if(str != null){
+    public static void httpGetUrl(boolean isForce, String path, HttpCallback callback, boolean isNet) {
+        String str = httpGetUrl(path, isForce, callback, isNet);
+        if (str != null) {
             callback.httpSuccess(str, path);
         }
     }
@@ -81,33 +88,39 @@ public class HttpUtil {
                 }
             }
         }
-        mFixedThreadPool.execute(new Runnable() {
-            @Override
-            public void run() {
-                byte[] bytes = http(path);
-                if(bytes != null){
-                    try {
-                        //文件保存位置
-                        File file = new File(saveDir.getPath() + File.separator + fileName);
-                        FileOutputStream fos = new FileOutputStream(file);
-                        fos.write(bytes);
-                        fos.close();
-                        if (callback != null) {
-                            callback.httpSuccess(file.getPath(), path);
+        if (App.getInstance().isNetworkAvailable()) {
+            mFixedThreadPool.execute(new Runnable() {
+                @Override
+                public void run() {
+                    byte[] bytes = http(path);
+                    if (bytes != null) {
+                        try {
+                            //文件保存位置
+                            File file = new File(saveDir.getPath() + File.separator + fileName);
+                            FileOutputStream fos = new FileOutputStream(file);
+                            fos.write(bytes);
+                            fos.close();
+                            if (callback != null) {
+                                callback.httpSuccess(file.getPath(), path);
+                            }
+                        } catch (Exception e) {
+                            e.getStackTrace();
+                            if (callback != null) {
+                                callback.httpError("图片保存失败!");
+                            }
                         }
-                    } catch (Exception e) {
-                        e.getStackTrace();
+                    } else {
                         if (callback != null) {
-                            callback.httpError("图片保存失败!");
+                            callback.httpError("未获取到数据!");
                         }
-                    }
-                } else {
-                    if (callback != null) {
-                        callback.httpError("未获取到数据!");
                     }
                 }
+            });
+        } else {
+            if (callback != null) {
+                callback.httpError("未连接网络!");
             }
-        });
+        }
         return null;
     }
 
@@ -155,7 +168,7 @@ public class HttpUtil {
 
     //根据字节数组构建UTF-8字符串
     private static String getStringByBytes(byte[] bytes) {
-        if(bytes == null){
+        if (bytes == null) {
             return "";
         }
         String str = "";

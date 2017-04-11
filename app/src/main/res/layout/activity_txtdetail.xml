@@ -2,16 +2,16 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@color/white">
+                android:background="@color/huyan">
 
     <TextView
         android:id="@+id/txt_zhang"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/Black"
-        android:textSize="14sp"
+        android:layout_centerHorizontal="true"
         android:layout_marginTop="10dp"
-        android:layout_centerHorizontal="true"/>
+        android:textColor="@color/Black"
+        android:textSize="14sp"/>
 
     <ImageView
         android:id="@+id/img_txt"
@@ -27,8 +27,8 @@
         android:layout_alignParentRight="true"
         android:layout_marginRight="20dp"
         android:gravity="center"
-        android:textSize="14sp"
-        android:textColor="@color/Black"/>
+        android:textColor="@color/Black"
+        android:textSize="14sp"/>
 
     <TextView
         android:id="@+id/txt_zhangjie"
@@ -36,8 +36,8 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:textSize="14sp"
-        android:textColor="@color/Black"/>
+        android:textColor="@color/Black"
+        android:textSize="14sp"/>
 
     <TextView
         android:id="@+id/txt_time"
@@ -46,8 +46,8 @@
         android:layout_alignParentBottom="true"
         android:layout_marginLeft="5dp"
         android:layout_toRightOf="@+id/txt_dianliang"
-        android:textSize="14sp"
-        android:textColor="@color/Black"/>
+        android:textColor="@color/Black"
+        android:textSize="14sp"/>
 
     <TextView
         android:id="@+id/txt_dianliang"
@@ -55,12 +55,54 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_marginLeft="5dp"
-        android:textSize="14sp"
-        android:textColor="@color/Black"/>
+        android:textColor="@color/Black"
+        android:textSize="14sp"/>
+
+    <RelativeLayout
+        android:id="@+id/rel_menu"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/Black"
+        android:visibility="gone">
+
+        <Button
+            android:id="@+id/btn_zhangjie"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/btn_item"
+            android:text="列表"/>
+
+        <Button
+            android:id="@+id/btn_xiazai"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_below="@+id/btn_zhangjie"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/btn_item"
+            android:text="下载后50章"/>
+
+        <Button
+            android:id="@+id/btn_xiazai1"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_below="@+id/btn_xiazai"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/btn_item"
+            android:text="下载后500章"/>
+
+    </RelativeLayout>
 
     <RelativeLayout
         android:id="@+id/rel_list"
-        android:layout_width="200dp"
+        android:layout_width="250dp"
         android:layout_height="match_parent"
         android:visibility="gone">
 
@@ -68,7 +110,9 @@
             android:id="@+id/listview_txtlist"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:divider="@null">
+            android:divider="@null"
+            android:fastScrollEnabled="true"
+            android:focusable="true">
         </ListView>
 
     </RelativeLayout>

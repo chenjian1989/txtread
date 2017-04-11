@@ -1,4 +1,4 @@
-package com.example.administrator.Util;
+package com.example.administrator.inter;
 
 import com.example.administrator.entity.HomeTxtEntity;
 import com.example.administrator.entity.SearchEntity;

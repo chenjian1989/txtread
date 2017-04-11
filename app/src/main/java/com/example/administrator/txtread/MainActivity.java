@@ -1,9 +1,7 @@
 package com.example.administrator.txtread;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.TextUtils;
 import android.view.View;
 import android.widget.AdapterView;
@@ -12,17 +10,20 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.administrator.Util.DownloadUtil;
-import com.example.administrator.Util.HttpCallback;
 import com.example.administrator.Util.HttpUtil;
-import com.example.administrator.Util.LocalCallBack;
 import com.example.administrator.Util.LogUtil;
 import com.example.administrator.adapter.TxtAdapter;
+import com.example.administrator.application.App;
+import com.example.administrator.base.CommonBaseActivity;
+import com.example.administrator.dialog.ConfirmDialog;
 import com.example.administrator.entity.HomeTxtEntity;
+import com.example.administrator.inter.HttpCallback;
+import com.example.administrator.inter.LocalCallBack;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends Activity {
+public class MainActivity extends CommonBaseActivity {
 
     private TxtAdapter mTxtAdapter;
 
@@ -32,7 +33,7 @@ public class MainActivity extends Activity {
 
     private List<HomeTxtEntity> mList_homes;
 
-    private Handler mHandler = new Handler();
+    private ConfirmDialog mConfirmDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +46,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onStart() {
         super.onStart();
-        if(App.getInstance().ismIsUpdate()){
+        if (App.getInstance().ismIsUpdate()) {
             shuaxin(null);
             App.getInstance().setmIsUpdate(false);
         }
@@ -75,12 +76,18 @@ public class MainActivity extends Activity {
 
         mList_txt.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                HomeTxtEntity homeTxtEntity = (HomeTxtEntity) mTxtAdapter.getItem(position);
-                App.getInstance().deleteHomeList(homeTxtEntity.getHomeUrl());
-                mList_homes.remove(homeTxtEntity);
-                mTxtAdapter.notifyDataSetChanged();
-                Toast.makeText(MainActivity.this, "删除成功!", Toast.LENGTH_SHORT).show();
+            public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
+                ConfirmDialog confirmDialog = new ConfirmDialog(MainActivity.this, "确定移出书架!", new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        HomeTxtEntity homeTxtEntity = (HomeTxtEntity) mTxtAdapter.getItem(position);
+                        App.getInstance().deleteHomeList(homeTxtEntity.getHomeUrl());
+                        mList_homes.remove(homeTxtEntity);
+                        mTxtAdapter.notifyDataSetChanged();
+                        Toast.makeText(MainActivity.this, "删除成功!", Toast.LENGTH_SHORT).show();
+                    }
+                });
+                confirmDialog.show();
                 return true;
             }
         });
@@ -92,7 +99,7 @@ public class MainActivity extends Activity {
         queryLocalData();
     }
 
-    private void queryLocalData(){
+    private void queryLocalData() {
         final long a = System.currentTimeMillis();
         mDownloadUtil.queryLocalData(new LocalCallBack() {
             @Override
@@ -101,13 +108,13 @@ public class MainActivity extends Activity {
                 mTxtAdapter.initData(mList_homes);
                 long b = System.currentTimeMillis() - a;
                 LogUtil.e("耗时：  " + b);
-                mHandler.post(new Runnable() {
+                runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         mList_txt.setAdapter(mTxtAdapter);
+                        houtaiDownload();
                     }
                 });
-                houtaiDownload();
             }
         }, false);
     }
@@ -118,11 +125,11 @@ public class MainActivity extends Activity {
             public void LocalSuccess(List<HomeTxtEntity> hts) {
                 mList_homes = hts;
                 mTxtAdapter.initData(hts);
-                mHandler.post(new Runnable() {
+                runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         mTxtAdapter.notifyDataSetChanged();
-                        if(!TextUtils.isEmpty(des)){
+                        if (!TextUtils.isEmpty(des)) {
                             Toast.makeText(MainActivity.this, des, Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -132,8 +139,11 @@ public class MainActivity extends Activity {
     }
 
     private void houtaiDownload() {
-        if (!App.getInstance().isWifiConnected() && !App.getInstance().isMobileConnected()) {
-            Toast.makeText(MainActivity.this, "当前未连接网络!", Toast.LENGTH_SHORT).show();
+        if (!App.getInstance().isNetworkAvailable()) {
+            if(mConfirmDialog == null){
+                mConfirmDialog = new ConfirmDialog(MainActivity.this, "当前未连接网络!");
+            }
+            mConfirmDialog.show();
             return;
         }
         try {
@@ -158,7 +168,7 @@ public class MainActivity extends Activity {
                     public void httpError(String des) {
                         LogUtil.e("MainActivity--强刷书架数据ERROR: " + des);
                     }
-                });
+                }, true);
             }
         } catch (Exception e) {
             e.getStackTrace();
