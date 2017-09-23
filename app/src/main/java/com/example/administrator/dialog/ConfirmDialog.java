@@ -38,14 +38,11 @@ public class ConfirmDialog extends Dialog{
     }
 
     private void initView(){
-        Button btnRetry = (Button) findViewById(R.id.btn_retry);
+        Button btnRetry = (Button) findViewById(R.id.btn_confirm);
         Button btnCancel = (Button) findViewById(R.id.btn_cancel);
-        TextView tvTitle = (TextView) findViewById(R.id.tip);
-        TextView tvMessage = (TextView) findViewById(R.id.tip1);
-        TextView tvMessage2 = (TextView) findViewById(R.id.tip2);
-
+        TextView tvTitle = (TextView) findViewById(R.id.notic_title);
+        TextView tvMessage = (TextView) findViewById(R.id.common_text);
         tvMessage.setText(mMsg);
-        tvMessage2.setVisibility(View.GONE);
 
         btnCancel.setOnClickListener(new View.OnClickListener() {
             @Override
