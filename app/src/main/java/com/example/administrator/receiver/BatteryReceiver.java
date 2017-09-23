@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 
+import com.example.administrator.Util.LogUtil;
 import com.example.administrator.inter.battery;
 import com.example.administrator.application.App;
 
@@ -23,6 +24,7 @@ public class BatteryReceiver extends BroadcastReceiver {
             if(mB != null){
                 mB.change(level, scale);
             }
+            LogUtil.e("电量刷新!!!");
             int dianliang = level * 100 / scale;
             App.getInstance().setmBatteryValue(dianliang + "%");
         }

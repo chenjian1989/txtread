@@ -93,9 +93,30 @@ public class App extends Application {
         mScreenHeight = height - DisplayUtil.sp2px(this, 28) - 20;
     }
 
-    public String substring(String str, String startData, String endData) {
-        str = str.substring(str.indexOf(startData) + startData.length());
-        return str.substring(0, str.indexOf(endData));
+    public String substringnew(String str, String startData, String endData) {
+        int index = str.indexOf(startData);
+        if(index >= 0){
+            str = str.substring(str.indexOf(startData) + startData.length());
+            int end = str.indexOf(endData);
+            if(end >= 0){
+                return str.substring(0, str.indexOf(endData));
+            }
+        }
+        return str;
+    }
+
+    public String substringnew(String str, int index){
+        if(index >= 0){
+            return str.substring(index);
+        }
+        return str;
+    }
+
+    public String substringnew(String str, int index, int end){
+        if(index >= 0 && end >= 0){
+            return str.substring(index, end);
+        }
+        return str;
     }
 
     public void savetag(String homeUrl, String url, int index) {
@@ -145,6 +166,7 @@ public class App extends Application {
 
     public void deleteHomeList(String url){
         mDBManager.delete(DBHelper.SHUJIA_TABLE, MobileColumn.SHUJIA_URL + "=?", new String[]{url});
+        mDBManager.delete(DBHelper.DATA_TABLE, MobileColumn.DATA_HOMEURL + "=?", new String[]{url});
     }
 
     public List<String> getHomeList() {
@@ -161,11 +183,12 @@ public class App extends Application {
         return list;
     }
 
-    public void saveData(String key, String value) {
+    public void saveData(String key, String value, String homeUrl) {
         //存入数据
         ContentValues values = new ContentValues();
         values.put(MobileColumn.DATA_URL, key);
         values.put(MobileColumn.DATA_VALUE, value);
+        values.put(MobileColumn.DATA_HOMEURL, homeUrl);
         Cursor c = mDBManager.query(DBHelper.DATA_TABLE, null, MobileColumn.DATA_URL + "=?"
                 , new String[]{key}, null, null, null);
         if (c.getCount() > 0) {

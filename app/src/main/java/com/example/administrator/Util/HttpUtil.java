@@ -26,7 +26,7 @@ public class HttpUtil {
 
     private static ExecutorService mFixedThreadPool = Executors.newFixedThreadPool(20);
 
-    public static String httpGetUrl(final String path, boolean isForce, final HttpCallback callback, boolean isNet) {
+    public static String httpGetUrl(final String path, final String homeUrl, boolean isForce, final HttpCallback callback, boolean isNet) {
         if (!isForce) {
             // 先在本地缓存找，如果存在直接返回
             String value = App.getInstance().getData(path);
@@ -41,7 +41,7 @@ public class HttpUtil {
                     String str = getStringByBytes(http(path));
                     //将返回的数据保存到本地缓存中
                     if (!TextUtils.isEmpty(str)) {
-                        App.getInstance().saveData(path, str);
+                        App.getInstance().saveData(path, str, homeUrl);
                         if (callback != null) {
                             callback.httpSuccess(str, path);
                         }
@@ -60,8 +60,8 @@ public class HttpUtil {
         return null;
     }
 
-    public static void httpGetUrl(boolean isForce, String path, HttpCallback callback, boolean isNet) {
-        String str = httpGetUrl(path, isForce, callback, isNet);
+    public static void httpGetUrl(boolean isForce, String path, String homeUrl, HttpCallback callback, boolean isNet) {
+        String str = httpGetUrl(path, homeUrl, isForce, callback, isNet);
         if (str != null) {
             callback.httpSuccess(str, path);
         }

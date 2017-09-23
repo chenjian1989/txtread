@@ -34,7 +34,7 @@ public class TxtUtil {
     private static int mHangju = 0;
 
     // 字体大小 （小米是 55）默认 30
-    private static int mTextSize = 30;
+    private static int mTextSize = 55;
 
     private static int mY = mTextSize + 30;
 
@@ -163,9 +163,9 @@ public class TxtUtil {
         for (; str.length() > 0; ) {
             int nums = getTxtPaint().breakText(str, true, App.getInstance().mScreenWidth, null);
             if (nums <= str.length()) {
-                String linnstr = str.substring(0, nums);
+                String linnstr = App.getInstance().substringnew(str, 0, nums);
                 linesdata.add(linnstr);
-                str = str.substring(nums, str.length());
+                str = App.getInstance().substringnew(str, nums, str.length());
             } else {
                 linesdata.add(str);
                 str = "";

@@ -20,23 +20,23 @@ public class BiqugeUtil implements Ihtml {
         if (!TextUtils.isEmpty(str)) {
             try {
                 // 章节的标题
-                String title = App.getInstance().substring(str, "<h1>", "</h1>");
+                String title = App.getInstance().substringnew(str, "<h1>", "</h1>");
                 txtEntity.setTitle(title);
                 // 上一章地址
-                String prev = App.getInstance().substring(str, "id=\"pager_prev\" href=\"", "\" target=\"_top\"");
+                String prev = App.getInstance().substringnew(str, "id=\"pager_prev\" href=\"", "\" target=\"_top\"");
                 if (prev != null && prev.contains("html")) {
-                    txtEntity.setPrev(url.substring(0, url.lastIndexOf("/") + 1) + prev);
+                    txtEntity.setPrev(App.getInstance().substringnew(url, 0, url.lastIndexOf("/") + 1) + prev);
                 }
                 // 下一章地址
-                String next = App.getInstance().substring(str, "id=\"pager_next\" href=\"", "\" target=\"_top\"");
+                String next = App.getInstance().substringnew(str, "id=\"pager_next\" href=\"", "\" target=\"_top\"");
                 if (next != null && next.contains("html")) {
-                    txtEntity.setNext(url.substring(0, url.lastIndexOf("/") + 1) + next);
+                    txtEntity.setNext(App.getInstance().substringnew(url, 0, url.lastIndexOf("/") + 1) + next);
                 }
                 // 内容数据
-                str = App.getInstance().substring(str, "<div id=\"content\">", "</div>");
+                str = App.getInstance().substringnew(str, "<div id=\"content\">", "</div>");
                 int index = str.indexOf("<script");
                 if (index > 0) {
-                    str = str.substring(0, index);
+                    str = App.getInstance().substringnew(str, 0, index);
                 }
                 str = str.replace("<br/>", "\n").replace("&lt;", "").replace("&gt;", "").replace("&nbsp;", "");
                 str = "    " + title + "\n" + str;
@@ -57,13 +57,17 @@ public class BiqugeUtil implements Ihtml {
     public HomeTxtEntity jiexihome(String data, String url, boolean isZhangjie) {
         HomeTxtEntity homeTxtEntity = new HomeTxtEntity();
         homeTxtEntity.setHomeUrl(url);
-        homeTxtEntity.setName(App.getInstance().substring(data, "<h1>", "</h1>"));
-        data = data.substring(data.indexOf("<h1>"));
-        homeTxtEntity.setAuthor(App.getInstance().substring(data, "<p>", "</p>").replace("\n", "").replace("\r", "").replace(" ", "")
+        homeTxtEntity.setName(App.getInstance().substringnew(data, "<h1>", "</h1>"));
+
+        data = App.getInstance().substringnew(data, data.indexOf("<h1>"));
+
+        homeTxtEntity.setAuthor(App.getInstance().substringnew(data, "<p>", "</p>").replace("\n", "").replace("\r", "").replace(" ", "")
                 .replace("&nbsp;", ""));
         homeTxtEntity.setNewest(newest(data));
-        String temp = url.substring(url.indexOf("www"));
-        String urls = "http://" + temp.substring(0, temp.indexOf("/")) + App.getInstance().substring(data, "\" src=\"", "\" width=\"120\"");
+
+        String temp = App.getInstance().substringnew(url, url.indexOf("www"));
+
+        String urls = "http://" + App.getInstance().substringnew(temp, 0, temp.indexOf("/")) + App.getInstance().substringnew(data, "\" src=\"", "\" width=\"120\"");
         homeTxtEntity.setFengmianUrl(urls);
         if(isZhangjie){
             homeTxtEntity.setChapters(ergodiclist(data, url));
@@ -72,8 +76,8 @@ public class BiqugeUtil implements Ihtml {
     }
 
     private String newest(String data) {
-        data = data.substring(data.indexOf("<p>最新更新：<a href=\""));
-        return "最新更新：" + App.getInstance().substring(data, "\">", "</a></p>");
+        data = App.getInstance().substringnew(data, data.indexOf("<p>最新更新：<a href=\""));
+        return "最新更新：" + App.getInstance().substringnew(data, "\">", "</a></p>");
     }
 
     private ArrayList<String> ergodiclist(String data, String url) {
@@ -82,13 +86,15 @@ public class BiqugeUtil implements Ihtml {
         while (isErgodic) {
             int index = data.indexOf("<dd> <a style=\"\" href=\"");
             if (index >= 0) {
-                String str = App.getInstance().substring(data, "<dd> <a style=\"\" href=\"", "</a></dd>");
-                String temp = url.substring(url.indexOf("www"));
-                String urls = "http://" + temp.substring(0, temp.indexOf("/")) + str.substring(0, str.indexOf("\">"));
-                String t = str.substring(str.indexOf("\">") + 2);
+                String str = App.getInstance().substringnew(data, "<dd> <a style=\"\" href=\"", "</a></dd>");
+                String temp = App.getInstance().substringnew(url, url.indexOf("www"));
+                String urls = "http://" + App.getInstance().substringnew(temp, 0, temp.indexOf("/")) + App.getInstance().substringnew(str, 0, str.indexOf("\">"));
+                String t = App.getInstance().substringnew(str, str.indexOf("\">") + 2);
                 datalist.add(urls + ";" + t);
                 index = data.indexOf("</a></dd>");
-                data = data.substring(index + 9);
+                if(index >= 0){
+                    data = App.getInstance().substringnew(data, index + 9);
+                }
             } else {
                 isErgodic = false;
             }
@@ -102,28 +108,28 @@ public class BiqugeUtil implements Ihtml {
         String bq = "<div class=\"result-item result-game-item\">";
         while (data.contains(bq)) {
             try {
-                searchEntities.add(jiexiDangeSearch(App.getInstance().substring(data, bq, bq)));
+                searchEntities.add(jiexiDangeSearch(App.getInstance().substringnew(data, bq, bq)));
             } catch (Exception e) {
                 e.getStackTrace();
             }
-            data = data.substring(data.indexOf(bq) + bq.length());
+            data = App.getInstance().substringnew(data, data.indexOf(bq) + bq.length());
         }
         return searchEntities;
     }
 
     private SearchEntity jiexiDangeSearch(String data) {
         SearchEntity searchEntity = new SearchEntity();
-        searchEntity.setFengmianUrl(App.getInstance().substring(data, "<img src=\"", "\" alt=\""));
-        searchEntity.setHomeUrl(App.getInstance().substring(data, "onclick=\"window.location='", "'\" class=\"").replace("m.","www."));
-        searchEntity.setName(App.getInstance().substring(data, "<h3 class=\"result-item-title result-game-item-title\">", "</h3>").replace("<em>",
+        searchEntity.setFengmianUrl(App.getInstance().substringnew(data, "<img src=\"", "\" alt=\""));
+        searchEntity.setHomeUrl(App.getInstance().substringnew(data, "onclick=\"window.location='", "'\" class=\"").replace("m.","www."));
+        searchEntity.setName(App.getInstance().substringnew(data, "<h3 class=\"result-item-title result-game-item-title\">", "</h3>").replace("<em>",
                 "").replace("</em>","").replace(" ","").replace("\r","").replace("\n",""));
         String str = "<span class=\"result-game-item-info-tag-title preBold\">作者：</span>";
-        data = data.substring(data.indexOf(str) + str.length());
-        searchEntity.setAuthor("作者：" + App.getInstance().substring(data, "<span>", "</span>").replace(" ","").replace("<em>", "")
+        data = App.getInstance().substringnew(data, data.indexOf(str) + str.length());
+        searchEntity.setAuthor("作者：" + App.getInstance().substringnew(data, "<span>", "</span>").replace(" ","").replace("<em>", "")
                 .replace("</em>","").replace("\r","").replace("\n",""));
         str = "<span class=\"result-game-item-info-tag-title\">最新章节：</span>";
-        data = data.substring(data.indexOf(str) + str.length());
-        searchEntity.setNewest("最新章节：" + App.getInstance().substring(data, ");\">", "</span>").replace(" ","").replace("\r","").replace("\n",""));
+        data = App.getInstance().substringnew(data, data.indexOf(str) + str.length());
+        searchEntity.setNewest("最新章节：" + App.getInstance().substringnew(data, ");\">", "</span>").replace(" ","").replace("\r","").replace("\n",""));
         return searchEntity;
     }
 }

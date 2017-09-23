@@ -61,7 +61,7 @@ public class SearchActivity extends CommonBaseActivity {
                         final List<String> lists = new ArrayList<>();
                         lists.add(s.getHomeUrl());
                         showSelfDefineDialog(true);
-                        HttpUtil.httpGetUrl(s.getHomeUrl(), true, new HttpCallback() {
+                        HttpUtil.httpGetUrl(s.getHomeUrl(), s.getHomeUrl(), true, new HttpCallback() {
                             @Override
                             public void httpSuccess(String data, String url) {
                                 LogUtil.e(url + "添加到书架----ok!!");
@@ -114,7 +114,7 @@ public class SearchActivity extends CommonBaseActivity {
         String url_end = "&isNeedCheckDomain=1&jump=1";
         try {
             String url = url_index + java.net.URLEncoder.encode(data, "utf-8") + url_end;
-            HttpUtil.httpGetUrl(url, true, new HttpCallback() {
+            HttpUtil.httpGetUrl(url, url, true, new HttpCallback() {
                 @Override
                 public void httpSuccess(String data, String url) {
                     final List<SearchEntity> searchEntities = mDownloadUtil.query(data);

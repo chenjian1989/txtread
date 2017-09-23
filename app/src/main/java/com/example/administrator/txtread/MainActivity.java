@@ -152,7 +152,7 @@ public class MainActivity extends CommonBaseActivity {
             temp.addAll(homeList);
             for (String path : homeList) {
                 // 强制刷新列表数据
-                HttpUtil.httpGetUrl(path, true, new HttpCallback() {
+                HttpUtil.httpGetUrl(path, path, true, new HttpCallback() {
                     @Override
                     public void httpSuccess(String data, String url) {
                         if (temp.contains(url)) {

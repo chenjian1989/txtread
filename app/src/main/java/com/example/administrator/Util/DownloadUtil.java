@@ -122,14 +122,14 @@ public class DownloadUtil {
      *
      * @param c
      */
-    public void DownloadData(final callback c) {
+    public void DownloadData(final callback c, boolean isForce) {
         if (mHtml == null && TextUtils.isEmpty(mUrl)) {
             c.loaderror("地址为空或地址无法解析!");
             return;
         }
 
         final long a = System.currentTimeMillis();
-        HttpUtil.httpGetUrl(false, mUrl, new HttpCallback() {
+        HttpUtil.httpGetUrl(isForce, mUrl, mHomeUrl, new HttpCallback() {
             @Override
             public void httpSuccess(String data, String url) {
                 jiexi(c, data);
@@ -259,7 +259,7 @@ public class DownloadUtil {
             if (mPager_next != null) {
                 //LogUtil.e("nextpage-str:  " + mPager_next);
                 mUrl = mPager_next;
-                DownloadData(c);
+                DownloadData(c, false);
             } else {
                 // 没有下一章了
                 c.loaderror("已经是最后一章了!");
@@ -277,7 +277,7 @@ public class DownloadUtil {
             if (mPager_prev != null) {
                 mUrl = mPager_prev;
                 //LogUtil.e("prevpage-str:  " + mUrl);
-                DownloadData(c);
+                DownloadData(c, false);
             } else {
                 // 已经是第一章了
                 c.loaderror("已经是第一章了!");
@@ -303,7 +303,7 @@ public class DownloadUtil {
         for (String url : nexts) {
             if (!TextUtils.isEmpty(url)) {
                 final long a = System.currentTimeMillis();
-                HttpUtil.httpGetUrl(false, url, new HttpCallback() {
+                HttpUtil.httpGetUrl(false, url, mHomeUrl, new HttpCallback() {
                     @Override
                     public void httpSuccess(String data, String url) {
                         haoshi(url, a);

@@ -101,7 +101,7 @@ public class TxtDetailActivity extends CommonBaseActivity implements GestureDete
             if (TextUtils.isEmpty(mUrl)) {
                 mUrl = mChapters.get(0).split(";")[0];
                 mDownloadUtil.setUrl(mUrl);
-                initData();
+                initData(false);
             } else {
                 setZhangjieAndName();
             }
@@ -178,25 +178,44 @@ public class TxtDetailActivity extends CommonBaseActivity implements GestureDete
         mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                mRel_list.setVisibility(View.GONE);
                 String str = mZhangjie.getItem(i).toString();
                 mUrl = str.split(";")[0];
                 // 初始化，需要跳转的url和页码下标
                 mDownloadUtil.setUrl(mUrl);
                 mIndex = 0;
                 // 隐藏章节列表
-                mRel_list.setVisibility(View.GONE);
                 isZhangjie = false;
                 // 清空imageview 并重新加载bitmap
                 // clearAll();
-                initData();
+                initData(false);
             }
         });
+
+        mListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                mRel_list.setVisibility(View.GONE);
+                String str = mZhangjie.getItem(position).toString();
+                mUrl = str.split(";")[0];
+                // 初始化，需要跳转的url和页码下标
+                mDownloadUtil.setUrl(mUrl);
+                mIndex = 0;
+                // 隐藏章节列表
+                isZhangjie = false;
+                // 清空imageview 并重新加载bitmap
+                // clearAll();
+                initData(true);
+                return false;
+            }
+        });
+
         if (!TextUtils.isEmpty(mUrl)) {
-            initData();
+            initData(false);
         }
     }
 
-    private void initData() {
+    private void initData(boolean isForce) {
         showSelfDefineDialog(true);
         mDownloadUtil.DownloadData(new callback() {
             @Override
@@ -210,7 +229,7 @@ public class TxtDetailActivity extends CommonBaseActivity implements GestureDete
                 loaderrors(str);
                 LogUtil.e("getHttp()--loaderror " + str);
             }
-        });
+        }, isForce);
     }
 
     private void initDisplayMetrics() {
@@ -312,7 +331,6 @@ public class TxtDetailActivity extends CommonBaseActivity implements GestureDete
             //下滑
             //Toast.makeText(this, velocityX + "下滑", Toast.LENGTH_SHORT).show();
         }
-
         return false;
     }
 
