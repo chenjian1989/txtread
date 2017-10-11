@@ -28,6 +28,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class App extends Application {
     private static App instance;
@@ -341,6 +343,20 @@ public class App extends Application {
             netType = 1;
         }
         return netType;
+    }
+
+    /**
+     * 判断字符串中是否包含了中文
+     * @param str
+     * @return
+     */
+    public boolean isContainChinese(String str) {
+        Pattern p = Pattern.compile("[\u4e00-\u9fa5]");
+        Matcher m = p.matcher(str);
+        if (m.find()) {
+            return true;
+        }
+        return false;
     }
 
     public String getDate(String format) {

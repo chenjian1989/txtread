@@ -1,7 +1,6 @@
 package com.example.administrator.base;
 
 import android.app.Activity;
-import android.app.Dialog;
 import android.os.Bundle;
 
 import com.example.administrator.dialog.MyDialog;
@@ -12,7 +11,7 @@ import com.example.administrator.dialog.MyDialog;
 public abstract class CommonBaseActivity extends Activity {
 
     /* 提示框对象 */
-    private Dialog mDialog;
+    private MyDialog mDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,6 +27,8 @@ public abstract class CommonBaseActivity extends Activity {
         if(mDialog == null){
             mDialog = new MyDialog(this);
             mDialog.setCanceledOnTouchOutside(false);
+        } else {
+            mDialog.donghua();
         }
         mDialog.setCancelable(cancelable);
         mDialog.show();

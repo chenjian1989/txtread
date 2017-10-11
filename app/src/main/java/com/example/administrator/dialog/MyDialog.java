@@ -28,7 +28,13 @@ public class MyDialog extends Dialog {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dialog_layout);
         ivProgress = (ImageView) findViewById(R.id.ivProgress);
+        donghua();
+    }
+
+    public void donghua(){
         Animation animation = AnimationUtils.loadAnimation(context, R.anim.dialog_progress_anim);
-        ivProgress.startAnimation(animation);
+        if(ivProgress != null){
+            ivProgress.startAnimation(animation);
+        }
     }
 }

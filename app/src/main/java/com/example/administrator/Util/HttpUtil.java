@@ -41,7 +41,9 @@ public class HttpUtil {
                     String str = getStringByBytes(http(path));
                     //将返回的数据保存到本地缓存中
                     if (!TextUtils.isEmpty(str)) {
-                        App.getInstance().saveData(path, str, homeUrl);
+                        if(App.getInstance().isContainChinese(str)){
+                            App.getInstance().saveData(path, str, homeUrl);
+                        }
                         if (callback != null) {
                             callback.httpSuccess(str, path);
                         }
