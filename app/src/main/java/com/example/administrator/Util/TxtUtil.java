@@ -33,7 +33,7 @@ public class TxtUtil {
     // 行距
     private static int mHangju = 0;
 
-    // 字体大小 （小米是 55）默认 30
+    // 字体大小 （小米是 55  红米1S 38）默认 30
     private static int mTextSize = 55;
 
     private static int mY = mTextSize + 30;
