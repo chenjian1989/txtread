@@ -53,11 +53,6 @@ public class SearchActivity extends CommonBaseActivity {
                     @Override
                     public void onClick(View v) {
                         SearchEntity s = (SearchEntity) mSearchAdapter.getItem(i);
-                        List<String> homeList = App.getInstance().getHomeList();
-                        if (homeList.contains(s.getHomeUrl())) {
-                            App.getInstance().showToast("已经在书架中!");
-                            return;
-                        }
                         addShuJia(s.getHomeUrl());
                     }
                 });
@@ -82,6 +77,9 @@ public class SearchActivity extends CommonBaseActivity {
             public boolean onLongClick(View v) {
                 String str = mEdit_search.getText().toString();
                 if (!TextUtils.isEmpty(str)) {
+                    if (!str.contains("www.xs.la")) {
+                        str = "https://www.xs.la/" + str + "/";
+                    }
                     addShuJia(str);
                 } else {
                     Toast.makeText(SearchActivity.this, "不能为空!", Toast.LENGTH_SHORT).show();
@@ -96,27 +94,31 @@ public class SearchActivity extends CommonBaseActivity {
 
     /**
      * 加入书架 (主线程中调用)
+     *
      * @param homeUrl 书本首页
      */
-    private void addShuJia(String homeUrl){
-        final List<String> lists = new ArrayList<>();
-        lists.add(homeUrl);
-        showSelfDefineDialog(true);
-        HttpUtil.httpGetUrl(homeUrl, homeUrl, true, new HttpCallback() {
-            @Override
-            public void httpSuccess(String data, String url) {
-                LogUtil.e(url + "添加到书架----ok!!");
-                mainToast("成功添加到书架!");
-                App.getInstance().saveHomeList(lists);
-                App.getInstance().setmIsUpdate(true);
-            }
+    private void addShuJia(final String homeUrl) {
+        List<String> homeList = App.getInstance().getHomeList();
+        if (homeList.contains(homeUrl)) {
+            App.getInstance().showToast("已经在书架中!");
+        } else {
+            showSelfDefineDialog(true);
+            HttpUtil.httpGetUrl(homeUrl, homeUrl, true, new HttpCallback() {
+                @Override
+                public void httpSuccess(String data, String url) {
+                    LogUtil.e(url + "添加到书架----ok!!");
+                    mainToast("成功添加到书架!");
+                    App.getInstance().saveHomeList(homeUrl);
+                    App.getInstance().setmIsUpdate(true);
+                }
 
-            @Override
-            public void httpError(String des) {
-                LogUtil.e("SearchActivity-HttpError: " + des);
-                mainToast("加入书架失败!");
-            }
-        }, false);
+                @Override
+                public void httpError(String des) {
+                    LogUtil.e("SearchActivity-HttpError: " + des);
+                    mainToast("加入书架失败!");
+                }
+            }, false);
+        }
     }
 
     private void mainToast(final String str) {

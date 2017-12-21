@@ -166,6 +166,10 @@ public class App extends Application {
         }
     }
 
+    public void saveHomeList(String homeurl){
+        savetag(homeurl, null, -1);
+    }
+
     public void deleteHomeList(String url){
         mDBManager.delete(DBHelper.SHUJIA_TABLE, MobileColumn.SHUJIA_URL + "=?", new String[]{url});
         mDBManager.delete(DBHelper.DATA_TABLE, MobileColumn.DATA_HOMEURL + "=?", new String[]{url});
