@@ -58,24 +58,7 @@ public class SearchActivity extends CommonBaseActivity {
                             App.getInstance().showToast("已经在书架中!");
                             return;
                         }
-                        final List<String> lists = new ArrayList<>();
-                        lists.add(s.getHomeUrl());
-                        showSelfDefineDialog(true);
-                        HttpUtil.httpGetUrl(s.getHomeUrl(), s.getHomeUrl(), true, new HttpCallback() {
-                            @Override
-                            public void httpSuccess(String data, String url) {
-                                LogUtil.e(url + "添加到书架----ok!!");
-                                mainToast("成功添加到书架!");
-                                App.getInstance().saveHomeList(lists);
-                                App.getInstance().setmIsUpdate(true);
-                            }
-
-                            @Override
-                            public void httpError(String des) {
-                                LogUtil.e("SearchActivity-HttpError: " + des);
-                                mainToast("加入书架失败!");
-                            }
-                        }, false);
+                        addShuJia(s.getHomeUrl());
                     }
                 });
                 confirmDialog.show();
@@ -87,7 +70,6 @@ public class SearchActivity extends CommonBaseActivity {
             public void onClick(View v) {
                 String str = mEdit_search.getText().toString();
                 if (!TextUtils.isEmpty(str)) {
-                    showSelfDefineDialog(true);
                     SearchXs(str);
                 } else {
                     Toast.makeText(SearchActivity.this, "不能为空!", Toast.LENGTH_SHORT).show();
@@ -95,8 +77,46 @@ public class SearchActivity extends CommonBaseActivity {
             }
         });
 
+        btn.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                String str = mEdit_search.getText().toString();
+                if (!TextUtils.isEmpty(str)) {
+                    addShuJia(str);
+                } else {
+                    Toast.makeText(SearchActivity.this, "不能为空!", Toast.LENGTH_SHORT).show();
+                }
+                return true;
+            }
+        });
+
         mSearchAdapter = new SearchAdapter(SearchActivity.this);
         mDownloadUtil = new DownloadUtil();
+    }
+
+    /**
+     * 加入书架 (主线程中调用)
+     * @param homeUrl 书本首页
+     */
+    private void addShuJia(String homeUrl){
+        final List<String> lists = new ArrayList<>();
+        lists.add(homeUrl);
+        showSelfDefineDialog(true);
+        HttpUtil.httpGetUrl(homeUrl, homeUrl, true, new HttpCallback() {
+            @Override
+            public void httpSuccess(String data, String url) {
+                LogUtil.e(url + "添加到书架----ok!!");
+                mainToast("成功添加到书架!");
+                App.getInstance().saveHomeList(lists);
+                App.getInstance().setmIsUpdate(true);
+            }
+
+            @Override
+            public void httpError(String des) {
+                LogUtil.e("SearchActivity-HttpError: " + des);
+                mainToast("加入书架失败!");
+            }
+        }, false);
     }
 
     private void mainToast(final String str) {
@@ -113,6 +133,7 @@ public class SearchActivity extends CommonBaseActivity {
         String url_index = "http://zhannei.baidu.com/cse/search?s=16829369641378287696&q=";
         String url_end = "&isNeedCheckDomain=1&jump=1";
         try {
+            showSelfDefineDialog(true);
             String url = url_index + java.net.URLEncoder.encode(data, "utf-8") + url_end;
             HttpUtil.httpGetUrl(url, url, true, new HttpCallback() {
                 @Override

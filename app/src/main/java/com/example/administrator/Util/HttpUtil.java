@@ -127,6 +127,7 @@ public class HttpUtil {
     }
 
     private static byte[] http(String path) {
+        path = path.replace("www.biquge.tw","www.xs.la").replace("http://www","https://www");
         mReCount++;
         HttpURLConnection conn = null;
         InputStream is = null;
