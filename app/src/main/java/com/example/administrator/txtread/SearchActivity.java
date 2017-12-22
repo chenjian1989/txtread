@@ -132,6 +132,8 @@ public class SearchActivity extends CommonBaseActivity {
     }
 
     private void SearchXs(String data) {
+        //http://zhannei.baidu.com/cse/search?s=1393206249994657467&q=%E4%B8%80%E5%BF%B5%E6%B0%B8%E6%81%92
+        // http://zhannei.baidu.com/cse/search?s=16829369641378287696&q=
         String url_index = "http://zhannei.baidu.com/cse/search?s=16829369641378287696&q=";
         String url_end = "&isNeedCheckDomain=1&jump=1";
         try {

@@ -1,5 +1,7 @@
 package com.example.administrator.Util;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.text.TextUtils;
 
 import com.example.administrator.application.App;
@@ -26,7 +28,8 @@ public class HttpUtil {
 
     private static ExecutorService mFixedThreadPool = Executors.newFixedThreadPool(20);
 
-    public static String httpGetUrl(final String path, final String homeUrl, boolean isForce, final HttpCallback callback, boolean isNet) {
+    public static String httpGetUrl(final String path, final String homeUrl, boolean isForce, final HttpCallback
+            callback, boolean isNet) {
         if (!isForce) {
             // 先在本地缓存找，如果存在直接返回
             String value = App.getInstance().getData(path);
@@ -41,7 +44,7 @@ public class HttpUtil {
                     String str = getStringByBytes(http(path));
                     //将返回的数据保存到本地缓存中
                     if (!TextUtils.isEmpty(str)) {
-                        if(App.getInstance().isContainChinese(str)){
+                        if (App.getInstance().isContainChinese(str)) {
                             App.getInstance().saveData(path, str, homeUrl);
                         }
                         if (callback != null) {
@@ -101,6 +104,7 @@ public class HttpUtil {
                             File file = new File(saveDir.getPath() + File.separator + fileName);
                             FileOutputStream fos = new FileOutputStream(file);
                             fos.write(bytes);
+//                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
                             fos.close();
                             if (callback != null) {
                                 callback.httpSuccess(file.getPath(), path);
@@ -124,6 +128,31 @@ public class HttpUtil {
             }
         }
         return null;
+    }
+
+    /**
+     * 获取网络图片
+     *
+     * @param imageurl 图片网络地址
+     * @return Bitmap 返回位图
+     */
+    public static Bitmap GetImageInputStream(String imageurl) {
+        URL url;
+        HttpURLConnection connection;
+        Bitmap bitmap = null;
+        try {
+            url = new URL(imageurl);
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(6000); //超时设置
+            connection.setDoInput(true);
+            connection.setUseCaches(false); //设置不使用缓存
+            InputStream inputStream = connection.getInputStream();
+            bitmap = BitmapFactory.decodeStream(inputStream);
+            inputStream.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bitmap;
     }
 
     private static byte[] http(String path) {
