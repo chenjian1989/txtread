@@ -60,7 +60,7 @@ public class DownloadUtil {
      */
     private Ihtml InitHtml(String url) {
         Ihtml html = new BiqugeUtil();
-        if (url.contains(App.getInstance().BIQUGE)) {
+        if (url.contains(App.getInstance().XS_LA) || url.contains(App.getInstance().BIQUGE)) {
             html = new BiqugeUtil();
         }
         return html;

@@ -1,16 +1,18 @@
 package com.example.administrator.application;
 
+import android.app.Activity;
 import android.app.Application;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Environment;
 import android.os.Handler;
-import android.os.Looper;
+import android.support.v4.app.ActivityCompat;
 import android.text.TextUtils;
 import android.view.Gravity;
 import android.widget.Toast;
@@ -21,7 +23,6 @@ import com.example.administrator.db.DBManager;
 import com.example.administrator.db.MobileColumn;
 import com.example.administrator.inter.battery;
 import com.example.administrator.receiver.BatteryReceiver;
-import com.example.administrator.txtread.TxtDetailActivity;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -42,6 +43,8 @@ public class App extends Application {
     public int mScreenHeight;
 
     public final String BIQUGE = "biquge.tw";
+
+    public final String XS_LA = "xs.la";
 
     private String mFilePath = null;
 
@@ -90,6 +93,36 @@ public class App extends Application {
         });
     }
 
+    /**
+     * 显示提示信息，居中显示
+     */
+    public void toastMiddle(final String msg) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (mToast != null) {
+                    mToast.cancel();
+                }
+                mToast = Toast.makeText(instance, msg, Toast.LENGTH_LONG);
+                mToast.setGravity(Gravity.CENTER, 0, 0);
+                mToast.show();
+            }
+        });
+
+//        new Thread(new Runnable() {
+//            public void run() {
+//                Looper.prepare();
+//                if (mToast != null) {
+//                    mToast.cancel();
+//                }
+//                mToast = Toast.makeText(instance, msg, Toast.LENGTH_LONG);
+//                mToast.setGravity(Gravity.CENTER, 0, 0);
+//                mToast.show();
+//                Looper.loop();
+//            }
+//        }).start();
+    }
+
     public void InitWidthAndHeigh(int with, int height) {
         mScreenWidth = with - DisplayUtil.sp2px(this, 28) - 20;
         mScreenHeight = height - DisplayUtil.sp2px(this, 28) - 20;
@@ -97,25 +130,25 @@ public class App extends Application {
 
     public String substringnew(String str, String startData, String endData) {
         int index = str.indexOf(startData);
-        if(index >= 0){
+        if (index >= 0) {
             str = str.substring(str.indexOf(startData) + startData.length());
             int end = str.indexOf(endData);
-            if(end >= 0){
+            if (end >= 0) {
                 return str.substring(0, str.indexOf(endData));
             }
         }
         return str;
     }
 
-    public String substringnew(String str, int index){
-        if(index >= 0){
+    public String substringnew(String str, int index) {
+        if (index >= 0) {
             return str.substring(index);
         }
         return str;
     }
 
-    public String substringnew(String str, int index, int end){
-        if(index >= 0 && end >= 0){
+    public String substringnew(String str, int index, int end) {
+        if (index >= 0 && end >= 0) {
             return str.substring(index, end);
         }
         return str;
@@ -166,11 +199,11 @@ public class App extends Application {
         }
     }
 
-    public void saveHomeList(String homeurl){
+    public void saveHomeList(String homeurl) {
         savetag(homeurl, null, -1);
     }
 
-    public void deleteHomeList(String url){
+    public void deleteHomeList(String url) {
         mDBManager.delete(DBHelper.SHUJIA_TABLE, MobileColumn.SHUJIA_URL + "=?", new String[]{url});
         mDBManager.delete(DBHelper.DATA_TABLE, MobileColumn.DATA_HOMEURL + "=?", new String[]{url});
     }
@@ -351,6 +384,7 @@ public class App extends Application {
 
     /**
      * 判断字符串中是否包含了中文
+     *
      * @param str
      * @return
      */
@@ -386,7 +420,27 @@ public class App extends Application {
         this.mIsUpdate = mIsUpdate;
     }
 
-    public int getColorByResid(int id){
+    public int getColorByResid(int id) {
         return getResources().getColor(id);
+    }
+
+    /**
+     * 判断权限,如果没有那么申请
+     *
+     * @param activity
+     * @param permission_str 需要判断的权限
+     */
+    public void verifyStoragePermissions(Activity activity, String permission_str) {
+        try {
+            // Check if we have write permission
+            int permission = ActivityCompat.checkSelfPermission(getApplicationContext(), permission_str);
+            if (permission != PackageManager.PERMISSION_GRANTED) {
+                // We don't have permission so prompt the user
+                String[] PERMISSIONS_STORAGE = {permission_str};
+                ActivityCompat.requestPermissions(activity, PERMISSIONS_STORAGE, 1);
+            }
+        } catch (Exception e) {
+            e.getStackTrace();
+        }
     }
 }

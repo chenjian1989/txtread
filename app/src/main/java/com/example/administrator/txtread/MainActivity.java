@@ -41,6 +41,7 @@ public class MainActivity extends CommonBaseActivity {
         setContentView(R.layout.activity_main);
         initView();
         initData();
+        App.getInstance().verifyStoragePermissions(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
     }
 
     @Override
@@ -140,7 +141,7 @@ public class MainActivity extends CommonBaseActivity {
 
     private void houtaiDownload() {
         if (!App.getInstance().isNetworkAvailable()) {
-            if(mConfirmDialog == null){
+            if (mConfirmDialog == null) {
                 mConfirmDialog = new ConfirmDialog(MainActivity.this, "当前未连接网络!");
             }
             mConfirmDialog.show();
