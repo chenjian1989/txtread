@@ -11,6 +11,9 @@ import com.example.administrator.application.App;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 解析网站地址 www.xs.la www.biquge.tw
+ */
 public class BiqugeUtil implements Ihtml {
 
     @Override

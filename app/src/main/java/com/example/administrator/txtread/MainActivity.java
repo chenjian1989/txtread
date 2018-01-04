@@ -108,7 +108,7 @@ public class MainActivity extends CommonBaseActivity {
                 mList_homes = hts;
                 mTxtAdapter.initData(mList_homes);
                 long b = System.currentTimeMillis() - a;
-                LogUtil.e("耗时：  " + b);
+                LogUtil.e("init耗时：  " + b);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -121,6 +121,7 @@ public class MainActivity extends CommonBaseActivity {
     }
 
     private void shuaxin(final String des) {
+        final long a = System.currentTimeMillis();
         mDownloadUtil.queryLocalData(new LocalCallBack() {
             @Override
             public void LocalSuccess(List<HomeTxtEntity> hts) {
@@ -133,6 +134,8 @@ public class MainActivity extends CommonBaseActivity {
                         if (!TextUtils.isEmpty(des)) {
                             Toast.makeText(MainActivity.this, des, Toast.LENGTH_SHORT).show();
                         }
+                        long b = System.currentTimeMillis() - a;
+                        LogUtil.e("shuaxin耗时：  " + b);
                     }
                 });
             }
@@ -161,6 +164,8 @@ public class MainActivity extends CommonBaseActivity {
                             if (temp.size() == 0) {
                                 LogUtil.e("书架数据刷新完成!");
                                 shuaxin("书架刷新完成!");
+                            } else {
+                                shuaxin(null);
                             }
                         }
                     }
