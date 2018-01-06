@@ -77,8 +77,12 @@ public class SearchActivity extends CommonBaseActivity {
             public boolean onLongClick(View v) {
                 String str = mEdit_search.getText().toString();
                 if (!TextUtils.isEmpty(str)) {
-                    if (!str.contains("www.xs.la")) {
-                        str = "https://www.xs.la/" + str + "/";
+                    if(!str.contains("http")){
+                        if (str.contains("_")) {
+                            str = "https://www.xs.la/" + str + "/";
+                        } else {
+                            str = "http://www.shuqizw.com/book/" + str + ".html";
+                        }
                     }
                     addShuJia(str);
                 } else {
@@ -133,12 +137,13 @@ public class SearchActivity extends CommonBaseActivity {
 
     private void SearchXs(String data) {
         //http://zhannei.baidu.com/cse/search?s=1393206249994657467&q=%E4%B8%80%E5%BF%B5%E6%B0%B8%E6%81%92
-        // http://zhannei.baidu.com/cse/search?s=16829369641378287696&q=
-        String url_index = "http://zhannei.baidu.com/cse/search?s=16829369641378287696&q=";
-        String url_end = "&isNeedCheckDomain=1&jump=1";
+        //http://zhannei.baidu.com/cse/search?s=16829369641378287696&q=
+        //http://zhannei.baidu.com/cse/search?q=%D2%BB%C4%EE%D3%C0%BA%E3&s=2950257706739235360&ie=gbk&entry=1
+        String url_index = "http://zhannei.baidu.com/cse/search?q=";
+        String url_end = "&s=2950257706739235360&ie=gbk&entry=1";
         try {
             showSelfDefineDialog(true);
-            String url = url_index + java.net.URLEncoder.encode(data, "utf-8") + url_end;
+            String url = url_index + java.net.URLEncoder.encode(data, "gbk") + url_end;
             HttpUtil.httpGetUrl(url, url, true, new HttpCallback() {
                 @Override
                 public void httpSuccess(String data, String url) {

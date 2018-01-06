@@ -46,6 +46,8 @@ public class App extends Application {
 
     public final String XS_LA = "xs.la";
 
+    public final String SHUQI = "shuqizw.com";
+
     private String mFilePath = null;
 
     private String mBatteryValue = "";

@@ -203,27 +203,21 @@ public class TxtUtil {
         List<String> lines = parsingData();
         if (lines.size() > 0) {
             int ye = lines.size() / count;
-            if (lines.size() % count == 1) {
-                String lastData = lines.get(lines.size() - 1);
-                lastData = lastData.replace("\r", "").replace(" ", "").replace("\t", "");
-                if (!TextUtils.isEmpty(lastData)) {
+            int lastCount = lines.size() % count;
+            if(lastCount > 0){
+                boolean isNull = true;
+                for(int i = 1; i <= lastCount; i++){
+                    String lastData = lines.get(lines.size() - i);
+                    lastData = lastData.replace("\r", "").replace(" ", "").replace("\t", "");
+                    // 判断数据是否为空
+                    if (!TextUtils.isEmpty(lastData)) {
+                        isNull = false;
+                        break;
+                    }
+                }
+                if(!isNull){
                     ye++;
                 }
-            } else if (lines.size() % count == 2) {
-                String lastData1 = lines.get(lines.size() - 1).replace("\r", "").replace(" ", "").replace("\t", "");
-                String lastData2 = lines.get(lines.size() - 2).replace("\r", "").replace(" ", "").replace("\t", "");
-                if (!TextUtils.isEmpty(lastData1) && !TextUtils.isEmpty(lastData2)) {
-                    ye++;
-                }
-            } else if (lines.size() % count == 3) {
-                String lastData1 = lines.get(lines.size() - 1).replace("\r", "").replace(" ", "").replace("\t", "");
-                String lastData2 = lines.get(lines.size() - 2).replace("\r", "").replace(" ", "").replace("\t", "");
-                String lastData3 = lines.get(lines.size() - 3).replace("\r", "").replace(" ", "").replace("\t", "");
-                if (!TextUtils.isEmpty(lastData1) && !TextUtils.isEmpty(lastData2) && !TextUtils.isEmpty(lastData3)) {
-                    ye++;
-                }
-            } else if (lines.size() % count > 3) {
-                ye++;
             }
             return ye;
         }

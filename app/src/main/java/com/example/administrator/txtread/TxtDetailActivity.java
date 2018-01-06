@@ -363,6 +363,7 @@ public class TxtDetailActivity extends CommonBaseActivity implements GestureDete
                 @Override
                 public void loaderror(String str) {
                     loaderrors(str);
+                    isLoading = false;
                     LogUtil.e("nextpage()--loaderror " + str);
                 }
             });
@@ -394,6 +395,7 @@ public class TxtDetailActivity extends CommonBaseActivity implements GestureDete
                 @Override
                 public void loaderror(String str) {
                     loaderrors(str);
+                    isLoading = false;
                     LogUtil.e("prevpage()--loaderror " + str);
                 }
             });

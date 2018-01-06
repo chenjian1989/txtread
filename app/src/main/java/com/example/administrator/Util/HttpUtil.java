@@ -41,7 +41,7 @@ public class HttpUtil {
             mFixedThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
-                    String str = getStringByBytes(http(path));
+                    String str = getStringByBytes(http(path), path);
                     //将返回的数据保存到本地缓存中
                     if (!TextUtils.isEmpty(str)) {
                         if (App.getInstance().isContainChinese(str)) {
@@ -156,7 +156,7 @@ public class HttpUtil {
     }
 
     private static byte[] http(String path) {
-        path = path.replace("www.biquge.tw","www.xs.la").replace("http://www","https://www");
+        path = path.replace("www.biquge.tw","www.xs.la").replace("http://www.xs.la","https://www.xs.la");
         mReCount++;
         HttpURLConnection conn = null;
         InputStream is = null;
@@ -199,13 +199,17 @@ public class HttpUtil {
     }
 
     //根据字节数组构建UTF-8字符串
-    private static String getStringByBytes(byte[] bytes) {
+    private static String getStringByBytes(byte[] bytes, String url) {
         if (bytes == null) {
             return "";
         }
         String str = "";
         try {
-            str = new String(bytes, "UTF-8");
+            if(url.contains(App.getInstance().SHUQI)){
+                str = new String(bytes, "GBK");
+            } else {
+                str = new String(bytes, "UTF-8");
+            }
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }

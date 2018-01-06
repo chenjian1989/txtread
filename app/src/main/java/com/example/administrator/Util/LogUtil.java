@@ -5,7 +5,7 @@ import android.util.Log;
 
 public class LogUtil {
 
-    private static final boolean isLog = false;
+    private static final boolean isLog = true;
 
     public static void e(String str){
         if(isLog){

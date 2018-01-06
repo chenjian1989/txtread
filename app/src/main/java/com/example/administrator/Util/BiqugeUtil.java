@@ -48,7 +48,7 @@ public class BiqugeUtil implements Ihtml {
             } catch (Exception e) {
                 e.getStackTrace();
                 txtEntity.setError("解析异常" + e.getMessage());
-                LogUtil.e("BiqugeUtil--getHttp() ERROR: " + e.getMessage());
+                LogUtil.e("BiqugeUtil--jiexishuju() ERROR: " + e.getMessage());
             }
         } else {
             txtEntity.setError("获取的数据为空!");

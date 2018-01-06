@@ -62,6 +62,8 @@ public class DownloadUtil {
         Ihtml html = new BiqugeUtil();
         if (url.contains(App.getInstance().XS_LA) || url.contains(App.getInstance().BIQUGE)) {
             html = new BiqugeUtil();
+        } else if(url.contains(App.getInstance().SHUQI)){
+            html = new ShuqizwUtil();
         }
         return html;
     }
@@ -70,11 +72,6 @@ public class DownloadUtil {
         new Thread(new Runnable() {
             @Override
             public void run() {
-//                try{
-//                    Thread.sleep(4000);
-//                } catch (Exception e){
-//                    e.getStackTrace();
-//                }
                 List<HomeTxtEntity> lists = new ArrayList<>();
                 Ihtml html_home = InitHtml(homeurl);
                 String value = App.getInstance().getData(homeurl);
@@ -122,7 +119,7 @@ public class DownloadUtil {
      *
      * @param c
      */
-    public void DownloadData(final callback c, boolean isForce) {
+    public void DownloadData(final callback c, final boolean isForce) {
         if (mHtml == null && TextUtils.isEmpty(mUrl)) {
             c.loaderror("地址为空或地址无法解析!");
             return;
@@ -132,12 +129,55 @@ public class DownloadUtil {
         HttpUtil.httpGetUrl(isForce, mUrl, mHomeUrl, new HttpCallback() {
             @Override
             public void httpSuccess(String data, String url) {
-                jiexi(c, data);
-                // 当前显示的章节加载完成后，后台进行预加载
-                prestrain(mTotal, null);
-                haoshi(mUrl, a);
-            }
+                if(url.contains(App.getInstance().SHUQI)){
+                    String url2 = mUrl.replace(".html","_2.html");
+                    // 解析章节数据
+                    TxtEntity txtEntity = mHtml.jiexishuju(data, mUrl);
+                    if (TextUtils.isEmpty(txtEntity.getError())) {
+                        TxtUtil.setmTitle(txtEntity.getTitle());
+                        final String str1 = txtEntity.getData();
+                        HttpUtil.httpGetUrl(isForce, url2, mHomeUrl, new HttpCallback() {
+                            @Override
+                            public void httpSuccess(String data, String url) {
+                                String url3 = mUrl.replace(".html","_3.html");
+                                TxtEntity txtEntity = mHtml.jiexishuju(data, mUrl);
+                                if (TextUtils.isEmpty(txtEntity.getError())) {
+                                    final String str2 = txtEntity.getData();
+                                    HttpUtil.httpGetUrl(isForce, url3, mHomeUrl, new HttpCallback() {
+                                        @Override
+                                        public void httpSuccess(String data, String url) {
+                                            TxtEntity txtEntity = mHtml.jiexishuju(data, mUrl);
+                                            if (TextUtils.isEmpty(txtEntity.getError())) {
+                                                final String str3 = txtEntity.getData();
+                                                TxtUtil.setData(str1 + str2 + str3, mUrl, mHomeUrl);
+                                                prestrain(mTotal, null);
+                                                haoshi(mUrl, a);
+                                                c.loadsuccess(mUrl);
+                                            }
+                                        }
 
+                                        @Override
+                                        public void httpError(String des) {
+                                            c.loaderror(des);
+                                        }
+                                    }, false);
+                                }
+                            }
+                            @Override
+                            public void httpError(String des) {
+                                c.loaderror(des);
+                            }
+                        }, false);
+                    } else {
+                        c.loaderror(txtEntity.getError());
+                    }
+                } else {
+                    jiexi(c, data);
+                    // 当前显示的章节加载完成后，后台进行预加载
+                    prestrain(mTotal, null);
+                    haoshi(mUrl, a);
+                }
+            }
             @Override
             public void httpError(String des) {
                 c.loaderror(des);
@@ -300,24 +340,64 @@ public class DownloadUtil {
         final List<String> temp = new ArrayList<>();
         temp.addAll(nexts);
         final int end = nexts.size();
-        for (String url : nexts) {
-            if (!TextUtils.isEmpty(url)) {
+        for (final String next_url : nexts) {
+            if (!TextUtils.isEmpty(next_url)) {
                 final long a = System.currentTimeMillis();
-                HttpUtil.httpGetUrl(false, url, mHomeUrl, new HttpCallback() {
-                    @Override
-                    public void httpSuccess(String data, String url) {
-                        haoshi(url, a);
-                        temp.remove(url);
-                        if (callback != null) {
-                            callback.donestate(end - temp.size(), end);
-                        }
-                    }
+                if(next_url.contains(App.getInstance().SHUQI)){
+                    HttpUtil.httpGetUrl(false, next_url, mHomeUrl, new HttpCallback() {
+                        @Override
+                        public void httpSuccess(String data, String url) {
+                            String url2 = next_url.replace(".html","_2.html");
+                            HttpUtil.httpGetUrl(false, url2, mHomeUrl, new HttpCallback() {
+                                @Override
+                                public void httpSuccess(String data, String url) {
+                                    String url3 = next_url.replace(".html","_3.html");
+                                    HttpUtil.httpGetUrl(false, url3, mHomeUrl, new HttpCallback() {
+                                        @Override
+                                        public void httpSuccess(String data, String url) {
+                                            haoshi(next_url, a);
+                                            temp.remove(next_url);
+                                            if (callback != null) {
+                                                callback.donestate(end - temp.size(), end);
+                                            }
+                                        }
 
-                    @Override
-                    public void httpError(String des) {
-                        LogUtil.e("DownloadUtil-prestrain-HttpError: " + des);
-                    }
-                }, true);
+                                        @Override
+                                        public void httpError(String des) {
+                                            LogUtil.e("DownloadUtil-prestrain-HttpError: " + des);
+                                        }
+                                    }, true);
+                                }
+
+                                @Override
+                                public void httpError(String des) {
+                                    LogUtil.e("DownloadUtil-prestrain-HttpError: " + des);
+                                }
+                            }, true);
+                        }
+
+                        @Override
+                        public void httpError(String des) {
+                            LogUtil.e("DownloadUtil-prestrain-HttpError: " + des);
+                        }
+                    }, true);
+                } else {
+                    HttpUtil.httpGetUrl(false, next_url, mHomeUrl, new HttpCallback() {
+                        @Override
+                        public void httpSuccess(String data, String url) {
+                            haoshi(url, a);
+                            temp.remove(url);
+                            if (callback != null) {
+                                callback.donestate(end - temp.size(), end);
+                            }
+                        }
+
+                        @Override
+                        public void httpError(String des) {
+                            LogUtil.e("DownloadUtil-prestrain-HttpError: " + des);
+                        }
+                    }, true);
+                }
             }
         }
     }
